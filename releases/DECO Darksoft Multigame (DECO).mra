@@ -35,6 +35,7 @@
 <misterromdescription>
     <name>DECO Multigame (Darksoft v17)</name>
     <setname>decodark</setname>
+    <rotation>vertical (ccw)</rotation>
     <rbf>DECOCassette</rbf>
     <year>2022</year>
     <manufacturer>bootleg (Darksoft)</manufacturer>

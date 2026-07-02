@@ -8,6 +8,7 @@
 <misterromdescription>
     <name>DS Telejan</name>
     <setname>cdsteljn</setname>
+    <rotation>vertical (ccw)</rotation>
     <rbf>DECOCassette</rbf>
     <year>1981</year>
     <manufacturer>Data East</manufacturer>

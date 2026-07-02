@@ -25,6 +25,7 @@
 <misterromdescription>
     <name>Lock'n'Chase</name>
     <setname>clocknch</setname>
+    <rotation>vertical (ccw)</rotation>
     <rbf>DECOCassette</rbf>
     <year>1981</year>
     <manufacturer>Data East</manufacturer>

@@ -8,6 +8,7 @@
 <misterromdescription>
     <name>Flash Boy</name>
     <setname>cfboy0a1</setname>
+    <rotation>vertical (ccw)</rotation>
     <rbf>DECOCassette</rbf>
     <year>1981</year>
     <manufacturer>Data East</manufacturer>

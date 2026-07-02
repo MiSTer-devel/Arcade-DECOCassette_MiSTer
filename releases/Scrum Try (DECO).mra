@@ -22,6 +22,7 @@
 <misterromdescription>
     <name>Scrum Try</name>
     <setname>cscrtry</setname>
+    <rotation>vertical (ccw)</rotation>
     <rbf>DECOCassette</rbf>
     <year>1984</year>
     <manufacturer>Data East</manufacturer>

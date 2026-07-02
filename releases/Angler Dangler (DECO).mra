@@ -8,6 +8,7 @@
 <misterromdescription>
     <name>Angler Dangler</name>
     <setname>cadanglr</setname>
+    <rotation>vertical (ccw)</rotation>
     <rbf>DECOCassette</rbf>
     <year>1982</year>
     <manufacturer>Data East</manufacturer>

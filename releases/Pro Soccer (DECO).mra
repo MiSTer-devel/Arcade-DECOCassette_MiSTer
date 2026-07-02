@@ -8,6 +8,7 @@
 <misterromdescription>
     <name>Pro Soccer</name>
     <setname>cpsoccer</setname>
+    <rotation>vertical (ccw)</rotation>
     <rbf>DECOCassette</rbf>
     <year>1983</year>
     <manufacturer>Data East</manufacturer>

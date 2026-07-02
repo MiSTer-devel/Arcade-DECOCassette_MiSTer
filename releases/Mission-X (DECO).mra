@@ -22,6 +22,7 @@
 <misterromdescription>
     <name>Mission-X</name>
     <setname>cmissnx</setname>
+    <rotation>vertical (ccw)</rotation>
     <rbf>DECOCassette</rbf>
     <year>1982</year>
     <manufacturer>Data East</manufacturer>

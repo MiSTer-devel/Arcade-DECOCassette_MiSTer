@@ -8,6 +8,7 @@
 <misterromdescription>
     <name>Highway Chase</name>
     <setname>chwy</setname>
+    <rotation>vertical (ccw)</rotation>
     <rbf>DECOCassette</rbf>
     <year>1980</year>
     <manufacturer>Data East</manufacturer>

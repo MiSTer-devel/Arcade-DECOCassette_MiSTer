@@ -8,6 +8,7 @@
 <misterromdescription>
     <name>Bump n Jump</name>
     <setname>cbnj</setname>
+    <rotation>vertical (ccw)</rotation>
     <rbf>DECOCassette</rbf>
     <year>1982</year>
     <manufacturer>Data East</manufacturer>
