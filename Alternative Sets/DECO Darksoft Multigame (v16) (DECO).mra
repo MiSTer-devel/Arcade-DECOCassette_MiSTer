@@ -40,6 +40,9 @@
     <manufacturer>bootleg (Darksoft)</manufacturer>
     <category>Multigame</category>
 
+  	<rotation>vertical (cw)</rotation>
+
+
     <rom index="0" zip="decocass.zip|decodark.zip" md5="none">
         <!-- $00000-$00FFF: Main 6502 BIOS = Darksoft replacement BIOS @7E (4 KB) -->
         <part name="darksoft.7e"/>

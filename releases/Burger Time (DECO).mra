@@ -22,7 +22,7 @@
     $01C00-$01CFF palette PROMs (256 B)
     $01D00-$02CFF dongle PROM region (UNUSED — dongle now loads via ioctl index 1 -> SDRAM; zero-filled)
     $02D00-$02DFF spare (256 B)
-    $02E00-$02EFF metadata (256 B)   <-- dongle_type/game_id/swap_mode still here (index 0)
+    $02E00-$02EFF metadata (256 B)   dongle_type/game_id/swap_mode still here (index 0)
     $02F00-$02FFF reserved (256 B)
     $03000+       cassette
   index 1: Type-3 dongle PROM (dp-126_b.dgl, 4 KB) -> SDRAM (read by all dongle types via dprom_addr)
@@ -34,6 +34,8 @@
     <year>1982</year>
     <manufacturer>Data East</manufacturer>
     <category>Platformer</category>
+
+	  <rotation>vertical (cw)</rotation>
 
     <rom index="0" zip="decocass.zip|cbtime.zip" md5="none">
         <!-- $00000-$00FFF: Main 6502 BIOS -->

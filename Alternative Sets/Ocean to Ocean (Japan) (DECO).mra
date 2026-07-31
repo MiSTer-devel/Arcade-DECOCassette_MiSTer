@@ -13,6 +13,8 @@
     <manufacturer>Data East</manufacturer>
     <category>Action</category>
 
+	<rotation>vertical (cw)</rotation>
+
     <rom index="0" zip="decocass.zip|cocean1a.zip" md5="none">
         <!-- $00000-$00FFF Main 6502 BIOS -->
         <part name="dsp-3_p0-a.m9" crc="2541e34b"/>

@@ -13,6 +13,8 @@
     <manufacturer>Data East</manufacturer>
     <category>Shooter</category>
 
+	<rotation>vertical (cw)</rotation>
+
     <rom index="0" zip="decocass.zip|cnebula.zip" md5="none">
         <!-- $00000-$00FFF Main 6502 BIOS -->
         <!-- BIOS-C-FIX-2026-06-29: UK (DECOCASS_BIOS_C_ROMS) set -> UK BIOS v0c-.7e, not USA v0b-.7e. -->

@@ -42,6 +42,8 @@
     <manufacturer>Data East</manufacturer>
     <category>Action</category>
 
+	  <rotation>vertical (cw)</rotation>
+
     <rom index="0" zip="decocass.zip|cflyball.zip" md5="none">
         <!-- $00000-$00FFF: Main 6502 BIOS (4 KB) — BIOS B (USA) -->
         <part name="v0b-.7e" crc="23d929b7"/>

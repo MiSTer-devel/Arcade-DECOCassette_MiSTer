@@ -13,6 +13,8 @@
     <manufacturer>Data East</manufacturer>
     <category>Driving</category>
 
+	<rotation>vertical (cw)</rotation>
+
     <rom index="0" zip="decocass.zip|cburnrub.zip|cburnrub2.zip" md5="none">
         <!-- $00000-$00FFF Main 6502 BIOS -->
         <part name="v0b-.7e" crc="23d929b7"/>

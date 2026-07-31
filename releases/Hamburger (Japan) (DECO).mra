@@ -13,6 +13,8 @@
     <manufacturer>Data East</manufacturer>
     <category>Platformer</category>
 
+	<rotation>vertical (cw)</rotation>
+
     <rom index="0" zip="decocass.zip|cbtime.zip|chamburger.zip" md5="none">
         <!-- $00000-$00FFF Main 6502 BIOS -->
         <!-- BIOS-A-FIX-2026-06-29: chamburger is a DECOCASS_BIOS_A_ROMS (Japan) set; it MUST run the

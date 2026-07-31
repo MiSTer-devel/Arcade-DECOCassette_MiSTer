@@ -13,6 +13,8 @@
     <manufacturer>Data East</manufacturer>
     <category>Sports</category>
 
+	<rotation>vertical (cw)</rotation>
+
     <rom index="0" zip="decocass.zip|csdtenis.zip" md5="none">
         <!-- $00000-$00FFF Main 6502 BIOS -->
         <!-- BIOS-A-FIX-2026-06-29: Japan (DECOCASS_BIOS_A_ROMS) set -> Japan BIOS v0a-.7e, not USA v0b-.7e. See Hamburger MRA for rationale. -->
