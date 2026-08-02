@@ -13,7 +13,7 @@
     <manufacturer>Data East</manufacturer>
     <category>Driving</category>
 
-	<rotation>vertical (cw)</rotation>
+	<rotation>vertical (ccw)</rotation>
 
     <rom index="0" zip="decocass.zip|cburnrub.zip|cbnj.zip" md5="none">
         <!-- $00000-$00FFF Main 6502 BIOS -->

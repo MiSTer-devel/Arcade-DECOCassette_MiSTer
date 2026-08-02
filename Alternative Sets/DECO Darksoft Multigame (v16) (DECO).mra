@@ -40,7 +40,7 @@
     <manufacturer>bootleg (Darksoft)</manufacturer>
     <category>Multigame</category>
 
-  	<rotation>vertical (cw)</rotation>
+  	<rotation>vertical (ccw)</rotation>
 
 
     <rom index="0" zip="decocass.zip|decodark.zip" md5="none">
