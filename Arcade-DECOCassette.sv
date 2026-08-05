@@ -905,6 +905,7 @@ cassette_loader cassette_loader_inst (
     .ioctl_wr         (ioctl_wr),
     .ioctl_addr       (ioctl_addr),
     .ioctl_dout       (ioctl_dout),
+    .ioctl_index      (ioctl_index),        // CASSETTE-IOCTL-INDEX-FIX-2026-08-04
     .bram_addr        (cass_load_addr),
     .bram_dout        (cass_load_dout),
     .bram_we          (cass_load_we),

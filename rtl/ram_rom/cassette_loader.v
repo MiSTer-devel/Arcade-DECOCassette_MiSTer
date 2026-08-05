@@ -32,6 +32,7 @@ module cassette_loader (
     input  wire        ioctl_wr,
     input  wire [24:0] ioctl_addr,
     input  wire [7:0]  ioctl_dout,
+    input  wire [7:0]  ioctl_index,     // CASSETTE-IOCTL-INDEX-FIX-2026-08-04 (see sel_cassette below)
 
     output reg  [15:0] bram_addr,
     output reg  [7:0]  bram_dout,
@@ -48,7 +49,21 @@ module cassette_loader (
     wire [24:0] addr = ioctl_addr;
     wire [7:0]  data = ioctl_dout;
 
-    wire sel_cassette = (addr >= 25'h03000) && (addr <= 25'h3FFFF);
+    // CASSETTE-IOCTL-INDEX-FIX-2026-08-04: gate on ioctl_index==0 (the MRA <rom index="0">
+    // stream). WITHOUT this, sel_cassette matched on ADDRESS ALONE, so the index-1 dongle
+    // download — which is 0-based (Arcade-DECOCassette.sv:1076-1077) — was also routed here.
+    // Any dongle >= 0x3000 bytes therefore spilled into the cassette window and was written
+    // into cassette BRAM at cassette_addr_rel 0 upward, i.e. dongle byte 0x3000 landed on tape
+    // BLOCK 0, with is_first_byte re-firing there and rebuilding the whole CRC table out of
+    // dongle bytes. Only the three type-4 sets have a dongle that big (cscrtry/cscrtry2/
+    // coozumou, 0x8000); every other conventional dongle is <= 0x1000 and never reached
+    // 0x3000, which is why ONLY those three ever showed it — no block count at all, ever.
+    // HW-CONFIRMED 2026-08-04 by an MRA-only test (32 KB cscrtry.pro swapped for a 4 KB
+    // dongle => Scrum Try's tape loads and the block count runs).
+    // This is the SAME defect and the SAME fix as ROM-LOADER-IOCTL-FIX-2026-06-03 in
+    // rom_loader.v:122, which was never propagated to this module.
+    // ORIGINAL (buggy): wire sel_cassette = (addr >= 25'h03000) && (addr <= 25'h3FFFF);
+    wire sel_cassette = (ioctl_index == 8'd0) && (addr >= 25'h03000) && (addr <= 25'h3FFFF);
     wire [24:0] cassette_addr_rel = addr - 25'h03000;
     wire is_first_byte = sel_cassette && (cassette_addr_rel == 25'd0);
 
