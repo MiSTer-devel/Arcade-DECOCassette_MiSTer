@@ -9,6 +9,7 @@
     <name>The Tower</name>
     <setname>ctower</setname>
     <rbf>DECOCassette</rbf>
+    <mameversion>0268</mameversion>
     <year>1981</year>
     <manufacturer>Data East</manufacturer>
     <category>Climbing</category>

@@ -9,6 +9,7 @@
     <name>Burnin Rubber (set 1)</name>
     <setname>cburnrub</setname>
     <rbf>DECOCassette</rbf>
+    <mameversion>0268</mameversion>
     <year>1982</year>
     <manufacturer>Data East</manufacturer>
     <category>Driving</category>

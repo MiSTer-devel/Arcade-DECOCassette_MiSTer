@@ -38,6 +38,7 @@
     <name>Flying Ball (DECO)</name>
     <setname>cflyball</setname>
     <rbf>DECOCassette</rbf>
+    <mameversion>0268</mameversion>
     <year>1985</year>
     <manufacturer>Data East</manufacturer>
     <category>Action</category>

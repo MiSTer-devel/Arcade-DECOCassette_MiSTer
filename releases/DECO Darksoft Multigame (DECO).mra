@@ -36,6 +36,7 @@
     <name>DECO Multigame (Darksoft v17)</name>
     <setname>decodark</setname>
     <rbf>DECOCassette</rbf>
+    <mameversion>0268</mameversion>
     <year>2022</year>
     <manufacturer>bootleg (Darksoft)</manufacturer>
     <category>Multigame</category>

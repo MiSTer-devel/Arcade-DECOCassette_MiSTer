@@ -22,6 +22,7 @@
     <name>Boulder Dash</name>
     <setname>cbdash</setname>
     <rbf>DECOCassette</rbf>
+    <mameversion>0268</mameversion>
     <year>1985</year>
     <manufacturer>Data East</manufacturer>
     <category>Maze</category>

@@ -9,6 +9,7 @@
     <name>Ice Cream Factory (set 2)</name>
     <setname>cppicf2</setname>
     <rbf>DECOCassette</rbf>
+    <mameversion>0268</mameversion>
     <year>1984</year>
     <manufacturer>Data East</manufacturer>
     <category>Platformer</category>

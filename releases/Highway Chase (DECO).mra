@@ -9,6 +9,7 @@
     <name>Highway Chase</name>
     <setname>chwy</setname>
     <rbf>DECOCassette</rbf>
+    <mameversion>0268</mameversion>
     <year>1980</year>
     <manufacturer>Data East</manufacturer>
     <category>Driving</category>
