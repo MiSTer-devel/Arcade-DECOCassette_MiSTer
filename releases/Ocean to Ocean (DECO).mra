@@ -22,11 +22,11 @@
         <part name="dsp-3_p1-.l9" crc="3bfff5f3"/>
         <!-- $01000-$013FF pad: a0/b0 old-boardset audio is 1KB @ 0xFC00, not 2KB @ 0xF800 -->
         <part repeat="0x400">00</part>
-        <!-- $01400-$017FF OLD audio 6502 BIOS (rms-3_p2-.c9, 1KB @ 0xFC00) -- OLD-AUDIO-PROM-FIX-2026-06-29 -->
+        <!-- $01400-$017FF OLD audio 6502 BIOS (rms-3_p2-.c9, 1KB @ 0xFC00) - OLD-AUDIO-PROM-FIX-2026-06-29 -->
         <part name="rms-3_p2-.c9" crc="6c4a891f"/>
         <!-- $01800-$01BFF MCU ROM -->
         <part name="cassmcu.1c" crc="a6df18fd"/>
-        <!-- $01C00-$01CFF OLD a0/b0 BIOS PROMs (96 B + 160 B pad) -- OLD-AUDIO-PROM-FIX-2026-06-29 -->
+        <!-- $01C00-$01CFF OLD a0/b0 BIOS PROMs (96 B + 160 B pad) - OLD-AUDIO-PROM-FIX-2026-06-29 -->
         <part name="dsp-3_p3-.e5" crc="539a5a64"/>
         <part name="rms-3_p4-.f6" crc="9014c0fd"/>
         <part name="dsp-3_p5-.m4" crc="e52089a0"/>

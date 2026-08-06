@@ -45,7 +45,7 @@
  
     <rom index="0" zip="decocass.zip|decodark.zip" md5="none">
         <!-- $00000-$00FFF: Main 6502 BIOS = Darksoft replacement BIOS @7E (4 KB) -->
-        <part name="darksoft.7e"/>
+        <part name="darksoft.7e" crc="ce3dd5a3"/>
 
         <!-- $01000-$017FF: Audio 6502 BIOS (2 KB) -->
         <part name="v1-.5a" crc="b66b2c2a"/>
@@ -80,7 +80,7 @@
     <!-- DONGLE-INDEX1-REVERT-2026-06-10: the 1 MB Darksoft dongle ROM on its OWN ioctl index = 1.
          Wrapper streams it to SDRAM via dongle_ld = (ioctl_index==1); SDRAM offset = ioctl_addr (0-based). -->
     <rom index="1" zip="decocass.zip|decodark.zip" md5="none">
-        <part name="20221213_v17_dongl_27c800.bin"/>
+        <part name="20221213_v17_dongl_27c800.bin" crc="69553e2b"/>
     </rom>
 
     <!-- DIPs from MAME decocass.cpp (input port decocass / multigame base); Country Code bits="21,23" (inclusive range). DSW1/DSW2 byte-swapped so RTL feeds .dsw2 from sw[2], .dsw1 from sw[3]. -->
