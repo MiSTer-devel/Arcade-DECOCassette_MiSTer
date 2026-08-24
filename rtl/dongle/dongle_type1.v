@@ -110,6 +110,11 @@ module dongle_type1 (
                 inmap = 24'hFAC60A; outmap = 24'hFAC60A;
                 type1_map[0]=T1PROM; type1_map[1]=T1PROM; type1_map[2]=T1LATCHINV; type1_map[3]=T1DIRECT; type1_map[4]=T1PROM; type1_map[5]=T1PROM; type1_map[6]=T1LATCH; type1_map[7]=T1PROM;
             end
+            8'd17: begin  // ctisland3 (handcrafted dongle PROM; MAME comment: "correct for
+                          // handcrafted prom" -> identity in/out maps, decocass_m.cpp:1563-1570)
+                inmap = 24'hFAC688; outmap = 24'hFAC688;
+                type1_map[0]=T1LATCHINV; type1_map[1]=T1PROM; type1_map[2]=T1PROM; type1_map[3]=T1DIRECT; type1_map[4]=T1PROM; type1_map[5]=T1PROM; type1_map[6]=T1LATCH; type1_map[7]=T1PROM;
+            end
             8'd18: begin  // cexplore (DECO release 18) -latch_26_pass_5_inv_2
                 inmap = 24'hFAC688; outmap = 24'hFAC688;
                 type1_map[0]=T1PROM; type1_map[1]=T1PROM; type1_map[2]=T1LATCHINV; type1_map[3]=T1PROM; type1_map[4]=T1PROM; type1_map[5]=T1DIRECT; type1_map[6]=T1LATCH; type1_map[7]=T1PROM;

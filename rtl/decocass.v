@@ -82,6 +82,7 @@ module decocass (
     // BRAM read data (address buses are generated below)
     input  wire [7:0]  ram_q,
     input  wire [7:0]  charram_q,
+    input  wire [7:0]  user3_q,           // decocrom overlay-PCB ROM (banked over charram $6000-$AFFF)
     input  wire [7:0]  fgvram_q,
     input  wire [7:0]  colram_q,
     input  wire [7:0]  tilram_q,
@@ -103,6 +104,16 @@ module decocass (
     output wire        charram_we_p1,     // plane 1 ($8000-$9FFF) write enable
     output wire        charram_we_p2,     // plane 2 ($A000-$BFFF) write enable
     output wire [7:0]  charram_dw,
+
+    // decocrom (MAME decocrom_map/init_decocrom): $6000-$AFFF banked read source,
+    // selected by $E900 (decocass_e900_w -> m_rombank->set_entry). Writes are
+    // UNAFFECTED by the bank (always land in charram — decocass_de0091_w always
+    // calls decocass_charram_w regardless of bank, per MAME's own comment
+    // "cexplore requires us to allow them"). Only games using init_decocrom
+    // (ctisland/ctisland2/ctisland3/cexplore) ever write $E900; every other game
+    // leaves de0091_bank at its reset value of 0, which is byte-identical to the
+    // pre-existing (always-charram) read behavior.
+    output wire [15:0] user3_addr_w,      // (cpu_addr-$6000) + (bank==2 ? $5000 : 0)
 
     output wire [9:0]  fgvram_addr_w,
     output wire        fgvram_we_w,
@@ -379,6 +390,7 @@ module decocass (
     reg [7:0] coin_counter;
     reg [7:0] nmi_reset;
     reg [7:0] color_missiles;   // MISSILES-IMPL-2026-06-28: $E302 latch
+    reg [1:0] de0091_bank;      // decocrom charram-bank select ($E900, decocass_e900_w)
 
     always @(posedge clk_sys) begin
         if (reset) begin
@@ -394,6 +406,7 @@ module decocass (
             coin_counter         <= 8'h00;
             nmi_reset            <= 8'h00;
             color_missiles       <= 8'h00;
+            de0091_bank          <= 2'd0;
         end else if (ce_main && !cpu_rw_n_int) begin
             // Latch register writes at each CPU write cycle
             if (cpu_addr_int == 16'hE302) color_missiles       <= cpu_dout_int & 8'h77;  // MAME: m_color_missiles = data & 0x77
@@ -408,8 +421,16 @@ module decocass (
             if (cpu_addr_int == 16'hE412) center_v_shift       <= cpu_dout_int;
             if (cpu_addr_int == 16'hE413) coin_counter         <= cpu_dout_int;
             if (cpu_addr_int == 16'hE417) nmi_reset            <= cpu_dout_int;
+            // decocass_e900_w: m_de0091_enable = data&3; set_entry SKIPPED (register unchanged)
+            // when data&3==3 (MAME's "invalid" guard) -> only actually load 0/1/2.
+            if (cpu_addr_int == 16'hE900 && cpu_dout_int[1:0] != 2'b11)
+                de0091_bank <= cpu_dout_int[1:0];
         end
     end
+
+    // decocrom user3 address: (cpu_addr-$6000) + $5000 for bank 2, +$0 for bank 1/0.
+    // Bank 0 (default/reset) never reads user3 (see mux below) so the offset is don't-care there.
+    assign user3_addr_w = (cpu_addr_int - 16'h6000) + (de0091_bank == 2'd2 ? 16'h5000 : 16'h0000);
 
     assign mode_set_reg            = mode_set;
     assign back_h_shift_reg        = back_h_shift;
@@ -441,11 +462,17 @@ module decocass (
             16'b0100_????_????_????,
             16'b0101_????_????_????:        cpu_din_mux = ram_q;
 
-            // Charram: $6000-$BFFF (lines 98-102 of spec)
+            // Charram: $6000-$AFFF (lines 98-102 of spec) — decocrom-bankable: reads user3
+            // instead of charram when de0091_bank != 0 (ctisland/ctisland2/ctisland3/cexplore
+            // only; every other game leaves de0091_bank at its reset value 0 -> charram_q,
+            // identical to the pre-decocrom behavior).
             16'b011?_????_????_????,
             16'b1000_????_????_????,
             16'b1001_????_????_????,
-            16'b1010_????_????_????,
+            16'b1010_????_????_????:        cpu_din_mux = (de0091_bank != 2'd0) ? user3_q : charram_q;
+
+            // Charram: $B000-$BFFF — NEVER banked (decocrom_map only overrides $6000-$AFFF;
+            // MAME's base decocass_map .ram() still owns this range even under init_decocrom).
             16'b1011_????_????_????:        cpu_din_mux = charram_q;
 
             // fgvideoram: $C000-$C3FF (line 103 of spec)

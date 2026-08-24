@@ -23,7 +23,7 @@ module dongle_mux (
     input  wire        ce_hclk4,
     input  wire        reset,
 
-    input  wire [3:0]  dongle_type,   // widened: 7 = Darksoft multigame (8 = Widel, later)
+    input  wire [3:0]  dongle_type,   // widened: 7 = Darksoft multigame, 8 = Widel multigame
     input  wire [7:0]  game_id,    // 2026-05-30: 8-bit = DECO release number (type1 case key)
     input  wire [3:0]  swap_mode,
 
@@ -120,6 +120,18 @@ module dongle_mux (
         .mcu_dbb_dout (mcu_dbb_dout), .mcu_dbb_sts (mcu_dbb_sts)
     );
 
+    // Widel multigame dongle — 20-bit counter/latch into a 1 MB ROM (MAME decocass_widel_state)
+    wire [19:0] widel_prom_addr;
+    wire [7:0]  widel_q;
+    dongle_widel widel_inst (
+        .clk_sys (clk_sys), .ce_hclk4 (ce_hclk4), .reset (reset),
+        .cpu_re (cpu_re), .cpu_we (cpu_we),
+        .cpu_addr_lo (cpu_addr_lo), .cpu_dout (cpu_dout),
+        .cpu_din_full (widel_q),
+        .prom_addr (widel_prom_addr), .prom_q (dprom_q),
+        .mcu_dbb_dout (mcu_dbb_dout), .mcu_dbb_sts (mcu_dbb_sts)
+    );
+
     always @(*) begin
         case (dongle_type)
             4'd1:    cpu_din_full = type1_q;
@@ -129,6 +141,7 @@ module dongle_mux (
             4'd5:    cpu_din_full = type5_q;
             4'd6:    cpu_din_full = nodong_q;
             4'd7:    cpu_din_full = darksoft_q;          // Darksoft multigame (1 MB)
+            4'd8:    cpu_din_full = widel_q;              // Widel multigame (1 MB)
             default: cpu_din_full = 8'hFF;
         endcase
     end
@@ -144,6 +157,7 @@ module dongle_mux (
             // 4'd4:    dprom_addr = {8'd0,  type4_prom_addr[11:0]};      // 12-bit (preserve original truncation)
             4'd4:    dprom_addr = {5'd0,  type4_prom_addr};            // 15-bit (full 32 KB type4 PROM)
             4'd7:    dprom_addr = darksoft_prom_addr;                  // 20-bit (Darksoft 1 MB)
+            4'd8:    dprom_addr = widel_prom_addr;                    // 20-bit (Widel 1 MB)
             default: dprom_addr = 20'd0;
         endcase
     end

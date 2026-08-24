@@ -569,6 +569,29 @@ spram #(.address_width(15), .data_width(8)) charram (
 );
 
 // =========================================================================
+// MEMORY: decocrom overlay-PCB ROM (MAME "user3" region) — ctisland/ctisland2/
+// ctisland3/cexplore only. Banked over charram $6000-$AFFF via $E900
+// (decocass_e900_w -> m_rombank, decocass.cpp:2095-2105/130-135). Up to 40 KB
+// (cexplore fully populates both 20 KB banks; ctisland uses only 16 KB of
+// bank 1). Loaded on its OWN ioctl index = 2 — small enough (<=40 KB) for a
+// plain on-chip BRAM, no SDRAM needed (unlike the 1 MB Darksoft/Widel dongle
+// ROMs on index 1).
+// =========================================================================
+wire        user3_we_rom = ioctl_download && ioctl_wr && (ioctl_index == 8'd2);
+wire [15:0] user3_addr;              // from decocass.v (bank-selected offset)
+wire [7:0]  user3_q;
+wire [15:0] user3_addr_bram = user3_we_rom ? ioctl_addr[15:0] : user3_addr;
+
+spram #(.address_width(16), .data_width(8)) user3_rom (
+	.clock     (clk_sys),
+	.enable    (1'b1),
+	.address   (user3_addr_bram),
+	.data      (ioctl_dout),
+	.wren      (user3_we_rom),
+	.q         (user3_q)
+);
+
+// =========================================================================
 // MEMORY: FG Video RAM ($C000-$C3FF + mirror $C800-$CBFF, 1 KB = 10-bit)
 // =========================================================================
 wire [9:0]  fgvram_addr_cpu;
@@ -731,6 +754,8 @@ decocass decocass_inst (
 	.bios_q            (bios_q),
 	.ram_q             (ram_q),
 	.charram_q         (charram_q),
+	.user3_q           (user3_q),
+	.user3_addr_w      (user3_addr),
 	.fgvram_q          (fgvram_q),
 	.colram_q          (colram_q),
 	.tilram_q          (tilram_q),

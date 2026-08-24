@@ -90,6 +90,7 @@ set_global_assignment -name VERILOG_FILE rtl/dongle/dongle_type4.v
 set_global_assignment -name VERILOG_FILE rtl/dongle/dongle_type5.v
 set_global_assignment -name VERILOG_FILE rtl/dongle/dongle_nodong.v
 set_global_assignment -name VERILOG_FILE rtl/dongle/dongle_darksoft.v
+set_global_assignment -name VERILOG_FILE rtl/dongle/dongle_widel.v
 
 # RAM & ROM
 set_global_assignment -name VERILOG_FILE        rtl/ram_rom/rom_loader.v
