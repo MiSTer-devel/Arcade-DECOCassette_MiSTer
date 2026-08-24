@@ -212,8 +212,15 @@ assign VIDEO_ARY = aspect_wide ? 12'd3 : 12'd4;
 `include "build_id.v"
 localparam CONF_STR = {
 	"DECOCassette;;",
-	"O[1],Aspect ratio,3:4,Original;",
-	"O[2],Orientation,Vertical,Horizontal;",
+	"P1,Video Options;",
+	"P1O[1],Aspect Ratio,3:4,Original;",
+	"P1O[2],Orientation,Vertical,Horizontal;",
+	"P1O[11],HDMI Flip,Off,On;",
+	"P1O[17:15],Scandoubler Fx,None,HQ2x,CRT 25%,CRT 50%,CRT 75%;",
+	"-;",
+	"P2,Pause Options;",
+	"P2O[25],Pause when OSD is open,On,Off;",
+	"P2O[26],Dim video after 10s,On,Off;",
 	"-;",
 	"DIP;",
 	"-;",
@@ -1942,7 +1949,7 @@ pause #(8,8,8,24) pause_inst (
 	.OSD_STATUS    (OSD_STATUS),
 	.user_button   (m_pause),
 	.pause_request (1'b0),
-	.options       (2'b01),       // PAUSE-2026-06-28: [0]=pause when OSD open; [1]=dim-video (off)
+	.options       (~status[26:25]),  // [0]=pause when OSD open; [1]=dim video after 10s
 	// DIAG-REVERT-2026-06-03: feed MCU-progress overlay (restore core_* to revert)
 	// .r             (core_r),
 	// .g             (core_g),
@@ -1959,7 +1966,7 @@ pause #(8,8,8,24) pause_inst (
 // =========================================================================
 wire no_rotate  = status[2] | direct_video;
 wire rotate_ccw = 1'b1;  // ROT270 = CCW for portrait DECO Cassette
-wire flip       = 1'b0;
+wire flip       = status[11];
 
 // ===== VIDEO-ALIGN-2026-06-06: pixel-pipeline vs blank/sync alignment =====
 // The RGB content path lags hcnt by ~12 px (USER-MEASURED on screen, 1.5 tiles):
@@ -2021,7 +2028,7 @@ arcade_video #(256,24,1) arcade_video (
 	.VBlank    (video_vblank_d),
 	.HSync     (video_hsync_d),
 	.VSync     (video_vsync_d),
-	.fx        (3'b000)
+	.fx        (status[17:15])
 );
 
 assign CLK_VIDEO = clk_vid;
