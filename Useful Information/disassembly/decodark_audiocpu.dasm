@@ -1,0 +1,740 @@
+F800: FF FF FF isb $ffff, x
+F803: FF FF FF isb $ffff, x
+F806: FF FF FF isb $ffff, x
+F809: FF FF FF isb $ffff, x
+F80C: FF FF FF isb $ffff, x
+F80F: FF FF FF isb $ffff, x
+F812: FF FF FF isb $ffff, x
+F815: FF FF FF isb $ffff, x
+F818: FF FF FF isb $ffff, x
+F81B: FF FF FF isb $ffff, x
+F81E: FF FF FF isb $ffff, x
+F821: FF FF FF isb $ffff, x
+F824: FF FF FF isb $ffff, x
+F827: FF FF FF isb $ffff, x
+F82A: FF FF FF isb $ffff, x
+F82D: FF FF FF isb $ffff, x
+F830: FF FF FF isb $ffff, x
+F833: FF FF FF isb $ffff, x
+F836: FF FF FF isb $ffff, x
+F839: FF FF FF isb $ffff, x
+F83C: FF FF FF isb $ffff, x
+F83F: FF FF FF isb $ffff, x
+F842: FF FF FF isb $ffff, x
+F845: FF FF FF isb $ffff, x
+F848: FF FF FF isb $ffff, x
+F84B: FF FF FF isb $ffff, x
+F84E: FF FF FF isb $ffff, x
+F851: FF FF FF isb $ffff, x
+F854: FF FF FF isb $ffff, x
+F857: FF FF FF isb $ffff, x
+F85A: FF FF FF isb $ffff, x
+F85D: FF FF FF isb $ffff, x
+F860: FF FF FF isb $ffff, x
+F863: FF FF FF isb $ffff, x
+F866: FF FF FF isb $ffff, x
+F869: FF FF FF isb $ffff, x
+F86C: FF FF FF isb $ffff, x
+F86F: FF FF FF isb $ffff, x
+F872: FF FF FF isb $ffff, x
+F875: FF FF FF isb $ffff, x
+F878: FF FF FF isb $ffff, x
+F87B: FF FF FF isb $ffff, x
+F87E: FF FF FF isb $ffff, x
+F881: FF FF FF isb $ffff, x
+F884: FF FF FF isb $ffff, x
+F887: FF FF FF isb $ffff, x
+F88A: FF FF FF isb $ffff, x
+F88D: FF FF FF isb $ffff, x
+F890: FF FF FF isb $ffff, x
+F893: FF FF FF isb $ffff, x
+F896: FF FF FF isb $ffff, x
+F899: FF FF FF isb $ffff, x
+F89C: FF FF FF isb $ffff, x
+F89F: FF FF FF isb $ffff, x
+F8A2: FF FF FF isb $ffff, x
+F8A5: FF FF FF isb $ffff, x
+F8A8: FF FF FF isb $ffff, x
+F8AB: FF FF FF isb $ffff, x
+F8AE: FF FF FF isb $ffff, x
+F8B1: FF FF FF isb $ffff, x
+F8B4: FF FF FF isb $ffff, x
+F8B7: FF FF FF isb $ffff, x
+F8BA: FF FF FF isb $ffff, x
+F8BD: FF FF FF isb $ffff, x
+F8C0: FF FF FF isb $ffff, x
+F8C3: FF FF FF isb $ffff, x
+F8C6: FF FF FF isb $ffff, x
+F8C9: FF FF FF isb $ffff, x
+F8CC: FF FF FF isb $ffff, x
+F8CF: FF FF FF isb $ffff, x
+F8D2: FF FF FF isb $ffff, x
+F8D5: FF FF FF isb $ffff, x
+F8D8: FF FF FF isb $ffff, x
+F8DB: FF FF FF isb $ffff, x
+F8DE: FF FF FF isb $ffff, x
+F8E1: FF FF FF isb $ffff, x
+F8E4: FF FF FF isb $ffff, x
+F8E7: FF FF FF isb $ffff, x
+F8EA: FF FF FF isb $ffff, x
+F8ED: FF FF FF isb $ffff, x
+F8F0: FF FF FF isb $ffff, x
+F8F3: FF FF FF isb $ffff, x
+F8F6: FF FF FF isb $ffff, x
+F8F9: FF FF FF isb $ffff, x
+F8FC: FF FF FF isb $ffff, x
+F8FF: FF FF FF isb $ffff, x
+F902: FF FF FF isb $ffff, x
+F905: FF FF FF isb $ffff, x
+F908: FF FF FF isb $ffff, x
+F90B: FF FF FF isb $ffff, x
+F90E: FF FF FF isb $ffff, x
+F911: FF FF FF isb $ffff, x
+F914: FF FF FF isb $ffff, x
+F917: FF FF FF isb $ffff, x
+F91A: FF FF FF isb $ffff, x
+F91D: FF FF FF isb $ffff, x
+F920: FF FF FF isb $ffff, x
+F923: FF FF FF isb $ffff, x
+F926: FF FF FF isb $ffff, x
+F929: FF FF FF isb $ffff, x
+F92C: FF FF FF isb $ffff, x
+F92F: FF FF FF isb $ffff, x
+F932: FF FF FF isb $ffff, x
+F935: FF FF FF isb $ffff, x
+F938: FF FF FF isb $ffff, x
+F93B: FF FF FF isb $ffff, x
+F93E: FF FF FF isb $ffff, x
+F941: FF FF FF isb $ffff, x
+F944: FF FF FF isb $ffff, x
+F947: FF FF FF isb $ffff, x
+F94A: FF FF FF isb $ffff, x
+F94D: FF FF FF isb $ffff, x
+F950: FF FF FF isb $ffff, x
+F953: FF FF FF isb $ffff, x
+F956: FF FF FF isb $ffff, x
+F959: FF FF FF isb $ffff, x
+F95C: FF FF FF isb $ffff, x
+F95F: FF FF FF isb $ffff, x
+F962: FF FF FF isb $ffff, x
+F965: FF FF FF isb $ffff, x
+F968: FF FF FF isb $ffff, x
+F96B: FF FF FF isb $ffff, x
+F96E: FF FF FF isb $ffff, x
+F971: FF FF FF isb $ffff, x
+F974: FF FF FF isb $ffff, x
+F977: FF FF FF isb $ffff, x
+F97A: FF FF FF isb $ffff, x
+F97D: FF FF FF isb $ffff, x
+F980: FF FF FF isb $ffff, x
+F983: FF FF FF isb $ffff, x
+F986: FF FF FF isb $ffff, x
+F989: FF FF FF isb $ffff, x
+F98C: FF FF FF isb $ffff, x
+F98F: FF FF FF isb $ffff, x
+F992: FF FF FF isb $ffff, x
+F995: FF FF FF isb $ffff, x
+F998: FF FF FF isb $ffff, x
+F99B: FF FF FF isb $ffff, x
+F99E: FF FF FF isb $ffff, x
+F9A1: FF FF FF isb $ffff, x
+F9A4: FF FF FF isb $ffff, x
+F9A7: FF FF FF isb $ffff, x
+F9AA: FF FF FF isb $ffff, x
+F9AD: FF FF FF isb $ffff, x
+F9B0: FF FF FF isb $ffff, x
+F9B3: FF FF FF isb $ffff, x
+F9B6: FF FF FF isb $ffff, x
+F9B9: FF FF FF isb $ffff, x
+F9BC: FF FF FF isb $ffff, x
+F9BF: FF FF FF isb $ffff, x
+F9C2: FF FF FF isb $ffff, x
+F9C5: FF FF FF isb $ffff, x
+F9C8: FF FF FF isb $ffff, x
+F9CB: FF FF FF isb $ffff, x
+F9CE: FF FF FF isb $ffff, x
+F9D1: FF FF FF isb $ffff, x
+F9D4: FF FF FF isb $ffff, x
+F9D7: FF FF FF isb $ffff, x
+F9DA: FF FF FF isb $ffff, x
+F9DD: FF FF FF isb $ffff, x
+F9E0: FF FF FF isb $ffff, x
+F9E3: FF FF FF isb $ffff, x
+F9E6: FF FF FF isb $ffff, x
+F9E9: FF FF FF isb $ffff, x
+F9EC: FF FF FF isb $ffff, x
+F9EF: FF FF FF isb $ffff, x
+F9F2: FF FF FF isb $ffff, x
+F9F5: FF FF FF isb $ffff, x
+F9F8: FF FF FF isb $ffff, x
+F9FB: FF FF FF isb $ffff, x
+F9FE: FF FF FF isb $ffff, x
+FA01: FF FF FF isb $ffff, x
+FA04: FF FF FF isb $ffff, x
+FA07: FF FF FF isb $ffff, x
+FA0A: FF FF FF isb $ffff, x
+FA0D: FF FF FF isb $ffff, x
+FA10: FF FF FF isb $ffff, x
+FA13: FF FF FF isb $ffff, x
+FA16: FF FF FF isb $ffff, x
+FA19: FF FF FF isb $ffff, x
+FA1C: FF FF FF isb $ffff, x
+FA1F: FF FF FF isb $ffff, x
+FA22: FF FF FF isb $ffff, x
+FA25: FF FF FF isb $ffff, x
+FA28: FF FF FF isb $ffff, x
+FA2B: FF FF FF isb $ffff, x
+FA2E: FF FF FF isb $ffff, x
+FA31: FF FF FF isb $ffff, x
+FA34: FF FF FF isb $ffff, x
+FA37: FF FF FF isb $ffff, x
+FA3A: FF FF FF isb $ffff, x
+FA3D: FF FF FF isb $ffff, x
+FA40: FF FF FF isb $ffff, x
+FA43: FF FF FF isb $ffff, x
+FA46: FF FF FF isb $ffff, x
+FA49: FF FF FF isb $ffff, x
+FA4C: FF FF FF isb $ffff, x
+FA4F: FF FF FF isb $ffff, x
+FA52: FF FF FF isb $ffff, x
+FA55: FF FF FF isb $ffff, x
+FA58: FF FF FF isb $ffff, x
+FA5B: FF FF FF isb $ffff, x
+FA5E: FF FF FF isb $ffff, x
+FA61: FF FF FF isb $ffff, x
+FA64: FF FF FF isb $ffff, x
+FA67: FF FF FF isb $ffff, x
+FA6A: FF FF FF isb $ffff, x
+FA6D: FF FF FF isb $ffff, x
+FA70: FF FF FF isb $ffff, x
+FA73: FF FF FF isb $ffff, x
+FA76: FF FF FF isb $ffff, x
+FA79: FF FF FF isb $ffff, x
+FA7C: FF FF FF isb $ffff, x
+FA7F: FF FF FF isb $ffff, x
+FA82: FF FF FF isb $ffff, x
+FA85: FF FF FF isb $ffff, x
+FA88: FF FF FF isb $ffff, x
+FA8B: FF FF FF isb $ffff, x
+FA8E: FF FF FF isb $ffff, x
+FA91: FF FF FF isb $ffff, x
+FA94: FF FF FF isb $ffff, x
+FA97: FF FF FF isb $ffff, x
+FA9A: FF FF FF isb $ffff, x
+FA9D: FF FF FF isb $ffff, x
+FAA0: FF FF FF isb $ffff, x
+FAA3: FF FF FF isb $ffff, x
+FAA6: FF FF FF isb $ffff, x
+FAA9: FF FF FF isb $ffff, x
+FAAC: FF FF FF isb $ffff, x
+FAAF: FF FF FF isb $ffff, x
+FAB2: FF FF FF isb $ffff, x
+FAB5: FF FF FF isb $ffff, x
+FAB8: FF FF FF isb $ffff, x
+FABB: FF FF FF isb $ffff, x
+FABE: FF FF FF isb $ffff, x
+FAC1: FF FF FF isb $ffff, x
+FAC4: FF FF FF isb $ffff, x
+FAC7: FF FF FF isb $ffff, x
+FACA: FF FF FF isb $ffff, x
+FACD: FF FF FF isb $ffff, x
+FAD0: FF FF FF isb $ffff, x
+FAD3: FF FF FF isb $ffff, x
+FAD6: FF FF FF isb $ffff, x
+FAD9: FF FF FF isb $ffff, x
+FADC: FF FF FF isb $ffff, x
+FADF: FF FF FF isb $ffff, x
+FAE2: FF FF FF isb $ffff, x
+FAE5: FF FF FF isb $ffff, x
+FAE8: FF FF FF isb $ffff, x
+FAEB: FF FF FF isb $ffff, x
+FAEE: FF FF FF isb $ffff, x
+FAF1: FF FF FF isb $ffff, x
+FAF4: FF FF FF isb $ffff, x
+FAF7: FF FF FF isb $ffff, x
+FAFA: FF FF FF isb $ffff, x
+FAFD: FF FF FF isb $ffff, x
+FB00: FF FF FF isb $ffff, x
+FB03: FF FF FF isb $ffff, x
+FB06: FF FF FF isb $ffff, x
+FB09: FF FF FF isb $ffff, x
+FB0C: FF FF FF isb $ffff, x
+FB0F: FF FF FF isb $ffff, x
+FB12: FF FF FF isb $ffff, x
+FB15: FF FF FF isb $ffff, x
+FB18: FF FF FF isb $ffff, x
+FB1B: FF FF FF isb $ffff, x
+FB1E: FF FF FF isb $ffff, x
+FB21: FF FF FF isb $ffff, x
+FB24: FF FF FF isb $ffff, x
+FB27: FF FF FF isb $ffff, x
+FB2A: FF FF FF isb $ffff, x
+FB2D: FF FF FF isb $ffff, x
+FB30: FF FF FF isb $ffff, x
+FB33: FF FF FF isb $ffff, x
+FB36: FF FF FF isb $ffff, x
+FB39: FF FF FF isb $ffff, x
+FB3C: FF FF FF isb $ffff, x
+FB3F: FF FF FF isb $ffff, x
+FB42: FF FF FF isb $ffff, x
+FB45: FF FF FF isb $ffff, x
+FB48: FF FF FF isb $ffff, x
+FB4B: FF FF FF isb $ffff, x
+FB4E: FF FF FF isb $ffff, x
+FB51: FF FF FF isb $ffff, x
+FB54: FF FF FF isb $ffff, x
+FB57: FF FF FF isb $ffff, x
+FB5A: FF FF FF isb $ffff, x
+FB5D: FF FF FF isb $ffff, x
+FB60: FF FF FF isb $ffff, x
+FB63: FF FF FF isb $ffff, x
+FB66: FF FF FF isb $ffff, x
+FB69: FF FF FF isb $ffff, x
+FB6C: FF FF FF isb $ffff, x
+FB6F: FF FF FF isb $ffff, x
+FB72: FF FF FF isb $ffff, x
+FB75: FF FF FF isb $ffff, x
+FB78: FF FF FF isb $ffff, x
+FB7B: FF FF FF isb $ffff, x
+FB7E: FF FF FF isb $ffff, x
+FB81: FF FF FF isb $ffff, x
+FB84: FF FF FF isb $ffff, x
+FB87: FF FF FF isb $ffff, x
+FB8A: FF FF FF isb $ffff, x
+FB8D: FF FF FF isb $ffff, x
+FB90: FF FF FF isb $ffff, x
+FB93: FF FF FF isb $ffff, x
+FB96: FF FF FF isb $ffff, x
+FB99: FF FF FF isb $ffff, x
+FB9C: FF FF FF isb $ffff, x
+FB9F: FF FF FF isb $ffff, x
+FBA2: FF FF FF isb $ffff, x
+FBA5: FF FF FF isb $ffff, x
+FBA8: FF FF FF isb $ffff, x
+FBAB: FF FF FF isb $ffff, x
+FBAE: FF FF FF isb $ffff, x
+FBB1: FF FF FF isb $ffff, x
+FBB4: FF FF FF isb $ffff, x
+FBB7: FF FF FF isb $ffff, x
+FBBA: FF FF FF isb $ffff, x
+FBBD: FF FF FF isb $ffff, x
+FBC0: FF FF FF isb $ffff, x
+FBC3: FF FF FF isb $ffff, x
+FBC6: FF FF FF isb $ffff, x
+FBC9: FF FF FF isb $ffff, x
+FBCC: FF FF FF isb $ffff, x
+FBCF: FF FF FF isb $ffff, x
+FBD2: FF FF FF isb $ffff, x
+FBD5: FF FF FF isb $ffff, x
+FBD8: FF FF FF isb $ffff, x
+FBDB: FF FF FF isb $ffff, x
+FBDE: FF FF FF isb $ffff, x
+FBE1: FF FF FF isb $ffff, x
+FBE4: FF FF FF isb $ffff, x
+FBE7: FF FF FF isb $ffff, x
+FBEA: FF FF FF isb $ffff, x
+FBED: FF FF FF isb $ffff, x
+FBF0: FF FF FF isb $ffff, x
+FBF3: FF FF FF isb $ffff, x
+FBF6: FF FF FF isb $ffff, x
+FBF9: FF FF FF isb $ffff, x
+FBFC: FF FF FF isb $ffff, x
+FBFF: FF 78 D8 isb $d878, x
+FC02: A2 FF    ldx #$ff
+FC04: 9A       txs
+FC05: A9 00    lda #$00
+FC07: AA       tax
+FC08: 95 00    sta $00, x
+FC0A: E8       inx
+FC0B: D0 FB    bne $fc08
+FC0D: A0 0B    ldy #$0b
+FC0F: A2 00    ldx #$00
+FC11: BD 2F FC lda $fc2f, x
+FC14: 8D 00 40 sta $4000
+FC17: 8D 00 80 sta $8000
+FC1A: E8       inx
+FC1B: BD 2F FC lda $fc2f, x
+FC1E: 8D 00 20 sta $2000
+FC21: 8D 00 60 sta $6000
+FC24: E8       inx
+FC25: 88       dey
+FC26: 10 E9    bpl $fc11
+FC28: AD 00 A0 lda $a000
+FC2B: 58       cli
+FC2C: 4C 2C FC jmp $fc2c
+FC2F: 00       brk
+FC30: 00       brk
+FC31: 01 00    ora ($00, x)
+FC33: 02       kil
+FC34: 00       brk
+FC35: 03 00    slo ($00, x)
+FC37: 04 00    nop $00
+FC39: 05 00    ora $00
+FC3B: 07 FF    slo $ff
+FC3D: 08       php
+FC3E: 00       brk
+FC3F: 09 00    ora #$00
+FC41: 0A       asl a
+FC42: 00       brk
+FC43: 0E 00 0F asl $0f00
+FC46: FF 48 A5 isb $a548, x
+FC49: 00       brk
+FC4A: F0 04    beq $fc50
+FC4C: 68       pla
+FC4D: 4C 06 02 jmp $0206
+FC50: 98       tya
+FC51: 48       pha
+FC52: 8A       txa
+FC53: 48       pha
+FC54: AD 00 A0 lda $a000
+FC57: C9 10    cmp #$10
+FC59: D0 13    bne $fc6e
+FC5B: A9 00    lda #$00
+FC5D: 85 02    sta $02
+FC5F: A9 00    lda #$00
+FC61: 85 04    sta $04
+FC63: A9 02    lda #$02
+FC65: 85 05    sta $05
+FC67: A9 AA    lda #$aa
+FC69: 85 01    sta $01
+FC6B: 4C A7 FC jmp $fca7
+FC6E: C9 20    cmp #$20
+FC70: D0 07    bne $fc79
+FC72: A9 FF    lda #$ff
+FC74: 85 00    sta $00
+FC76: 4C 03 02 jmp $0203
+FC79: C9 40    cmp #$40
+FC7B: F0 30    beq $fcad
+FC7D: A6 01    ldx $01
+FC7F: E0 AA    cpx #$aa
+FC81: D0 24    bne $fca7
+FC83: AA       tax
+FC84: 29 F0    and #$f0
+FC86: D0 1F    bne $fca7
+FC88: A5 02    lda $02
+FC8A: 4A       lsr a
+FC8B: 8A       txa
+FC8C: B0 0B    bcs $fc99
+FC8E: 0A       asl a
+FC8F: 0A       asl a
+FC90: 0A       asl a
+FC91: 0A       asl a
+FC92: 85 03    sta $03
+FC94: E6 02    inc $02
+FC96: 4C A7 FC jmp $fca7
+FC99: 05 03    ora $03
+FC9B: A2 00    ldx #$00
+FC9D: 81 04    sta ($04, x)
+FC9F: E6 02    inc $02
+FCA1: E6 04    inc $04
+FCA3: D0 02    bne $fca7
+FCA5: E6 05    inc $05
+FCA7: 68       pla
+FCA8: AA       tax
+FCA9: 68       pla
+FCAA: A8       tay
+FCAB: 68       pla
+FCAC: 40       rti
+FCAD: A9 07    lda #$07
+FCAF: 8D 00 40 sta $4000
+FCB2: A9 FF    lda #$ff
+FCB4: 8D 00 20 sta $2000
+FCB7: A9 07    lda #$07
+FCB9: 8D 00 80 sta $8000
+FCBC: A9 F9    lda #$f9
+FCBE: 8D 00 60 sta $6000
+FCC1: A9 09    lda #$09
+FCC3: 8D 00 80 sta $8000
+FCC6: A9 0D    lda #$0d
+FCC8: 8D 00 60 sta $6000
+FCCB: A9 0A    lda #$0a
+FCCD: 8D 00 80 sta $8000
+FCD0: A9 0D    lda #$0d
+FCD2: 8D 00 60 sta $6000
+FCD5: A9 0F    lda #$0f
+FCD7: 8D 00 80 sta $8000
+FCDA: A9 00    lda #$00
+FCDC: 8D 00 60 sta $6000
+FCDF: A9 0E    lda #$0e
+FCE1: 8D 00 40 sta $4000
+FCE4: A9 00    lda #$00
+FCE6: 8D 00 20 sta $2000
+FCE9: A9 0E    lda #$0e
+FCEB: 8D 00 80 sta $8000
+FCEE: A9 00    lda #$00
+FCF0: 8D 00 60 sta $6000
+FCF3: A9 64    lda #$64
+FCF5: 85 06    sta $06
+FCF7: A9 20    lda #$20
+FCF9: 85 08    sta $08
+FCFB: 20 29 FD jsr $fd29
+FCFE: A9 00    lda #$00
+FD00: 85 06    sta $06
+FD02: A9 04    lda #$04
+FD04: 85 08    sta $08
+FD06: 20 29 FD jsr $fd29
+FD09: A0 00    ldy #$00
+FD0B: A9 4F    lda #$4f
+FD0D: 85 06    sta $06
+FD0F: A9 0A    lda #$0a
+FD11: 85 08    sta $08
+FD13: 20 29 FD jsr $fd29
+FD16: A9 00    lda #$00
+FD18: 85 06    sta $06
+FD1A: A9 04    lda #$04
+FD1C: 85 08    sta $08
+FD1E: 20 29 FD jsr $fd29
+FD21: C8       iny
+FD22: C0 05    cpy #$05
+FD24: D0 E5    bne $fd0b
+FD26: 4C F3 FC jmp $fcf3
+FD29: A9 02    lda #$02
+FD2B: 8D 00 80 sta $8000
+FD2E: A5 06    lda $06
+FD30: 8D 00 60 sta $6000
+FD33: 4A       lsr a
+FD34: 85 07    sta $07
+FD36: A9 04    lda #$04
+FD38: 8D 00 80 sta $8000
+FD3B: A5 07    lda $07
+FD3D: 8D 00 60 sta $6000
+FD40: A6 08    ldx $08
+FD42: A9 00    lda #$00
+FD44: 85 09    sta $09
+FD46: E6 09    inc $09
+FD48: D0 FC    bne $fd46
+FD4A: CA       dex
+FD4B: D0 F5    bne $fd42
+FD4D: 60       rts
+FD4E: FF FF FF isb $ffff, x
+FD51: FF FF FF isb $ffff, x
+FD54: FF FF FF isb $ffff, x
+FD57: FF FF FF isb $ffff, x
+FD5A: FF FF FF isb $ffff, x
+FD5D: FF FF FF isb $ffff, x
+FD60: FF FF FF isb $ffff, x
+FD63: FF FF FF isb $ffff, x
+FD66: FF FF FF isb $ffff, x
+FD69: FF FF FF isb $ffff, x
+FD6C: FF FF FF isb $ffff, x
+FD6F: FF FF FF isb $ffff, x
+FD72: FF FF FF isb $ffff, x
+FD75: FF FF FF isb $ffff, x
+FD78: FF FF FF isb $ffff, x
+FD7B: FF FF FF isb $ffff, x
+FD7E: FF FF FF isb $ffff, x
+FD81: FF FF FF isb $ffff, x
+FD84: FF FF FF isb $ffff, x
+FD87: FF FF FF isb $ffff, x
+FD8A: FF FF FF isb $ffff, x
+FD8D: FF FF FF isb $ffff, x
+FD90: FF FF FF isb $ffff, x
+FD93: FF FF FF isb $ffff, x
+FD96: FF FF FF isb $ffff, x
+FD99: FF FF FF isb $ffff, x
+FD9C: FF FF FF isb $ffff, x
+FD9F: FF FF FF isb $ffff, x
+FDA2: FF FF FF isb $ffff, x
+FDA5: FF FF FF isb $ffff, x
+FDA8: FF FF FF isb $ffff, x
+FDAB: FF FF FF isb $ffff, x
+FDAE: FF FF FF isb $ffff, x
+FDB1: FF FF FF isb $ffff, x
+FDB4: FF FF FF isb $ffff, x
+FDB7: FF FF FF isb $ffff, x
+FDBA: FF FF FF isb $ffff, x
+FDBD: FF FF FF isb $ffff, x
+FDC0: FF FF FF isb $ffff, x
+FDC3: FF FF FF isb $ffff, x
+FDC6: FF FF FF isb $ffff, x
+FDC9: FF FF FF isb $ffff, x
+FDCC: FF FF FF isb $ffff, x
+FDCF: FF FF FF isb $ffff, x
+FDD2: FF FF FF isb $ffff, x
+FDD5: FF FF FF isb $ffff, x
+FDD8: FF FF FF isb $ffff, x
+FDDB: FF FF FF isb $ffff, x
+FDDE: FF FF FF isb $ffff, x
+FDE1: FF FF FF isb $ffff, x
+FDE4: FF FF FF isb $ffff, x
+FDE7: FF FF FF isb $ffff, x
+FDEA: FF FF FF isb $ffff, x
+FDED: FF FF FF isb $ffff, x
+FDF0: FF FF FF isb $ffff, x
+FDF3: FF FF FF isb $ffff, x
+FDF6: FF FF FF isb $ffff, x
+FDF9: FF FF FF isb $ffff, x
+FDFC: FF FF FF isb $ffff, x
+FDFF: FF FF FF isb $ffff, x
+FE02: FF FF FF isb $ffff, x
+FE05: FF FF FF isb $ffff, x
+FE08: FF FF FF isb $ffff, x
+FE0B: FF FF FF isb $ffff, x
+FE0E: FF FF FF isb $ffff, x
+FE11: FF FF FF isb $ffff, x
+FE14: FF FF FF isb $ffff, x
+FE17: FF FF FF isb $ffff, x
+FE1A: FF FF FF isb $ffff, x
+FE1D: FF FF FF isb $ffff, x
+FE20: FF FF FF isb $ffff, x
+FE23: FF FF FF isb $ffff, x
+FE26: FF FF FF isb $ffff, x
+FE29: FF FF FF isb $ffff, x
+FE2C: FF FF FF isb $ffff, x
+FE2F: FF FF FF isb $ffff, x
+FE32: FF FF FF isb $ffff, x
+FE35: FF FF FF isb $ffff, x
+FE38: FF FF FF isb $ffff, x
+FE3B: FF FF FF isb $ffff, x
+FE3E: FF FF FF isb $ffff, x
+FE41: FF FF FF isb $ffff, x
+FE44: FF FF FF isb $ffff, x
+FE47: FF FF FF isb $ffff, x
+FE4A: FF FF FF isb $ffff, x
+FE4D: FF FF FF isb $ffff, x
+FE50: FF FF FF isb $ffff, x
+FE53: FF FF FF isb $ffff, x
+FE56: FF FF FF isb $ffff, x
+FE59: FF FF FF isb $ffff, x
+FE5C: FF FF FF isb $ffff, x
+FE5F: FF FF FF isb $ffff, x
+FE62: FF FF FF isb $ffff, x
+FE65: FF FF FF isb $ffff, x
+FE68: FF FF FF isb $ffff, x
+FE6B: FF FF FF isb $ffff, x
+FE6E: FF FF FF isb $ffff, x
+FE71: FF FF FF isb $ffff, x
+FE74: FF FF FF isb $ffff, x
+FE77: FF FF FF isb $ffff, x
+FE7A: FF FF FF isb $ffff, x
+FE7D: FF FF FF isb $ffff, x
+FE80: FF FF FF isb $ffff, x
+FE83: FF FF FF isb $ffff, x
+FE86: FF FF FF isb $ffff, x
+FE89: FF FF FF isb $ffff, x
+FE8C: FF FF FF isb $ffff, x
+FE8F: FF FF FF isb $ffff, x
+FE92: FF FF FF isb $ffff, x
+FE95: FF FF FF isb $ffff, x
+FE98: FF FF FF isb $ffff, x
+FE9B: FF FF FF isb $ffff, x
+FE9E: FF FF FF isb $ffff, x
+FEA1: FF FF FF isb $ffff, x
+FEA4: FF FF FF isb $ffff, x
+FEA7: FF FF FF isb $ffff, x
+FEAA: FF FF FF isb $ffff, x
+FEAD: FF FF FF isb $ffff, x
+FEB0: FF FF FF isb $ffff, x
+FEB3: FF FF FF isb $ffff, x
+FEB6: FF FF FF isb $ffff, x
+FEB9: FF FF FF isb $ffff, x
+FEBC: FF FF FF isb $ffff, x
+FEBF: FF FF FF isb $ffff, x
+FEC2: FF FF FF isb $ffff, x
+FEC5: FF FF FF isb $ffff, x
+FEC8: FF FF FF isb $ffff, x
+FECB: FF FF FF isb $ffff, x
+FECE: FF FF FF isb $ffff, x
+FED1: FF FF FF isb $ffff, x
+FED4: FF FF FF isb $ffff, x
+FED7: FF FF FF isb $ffff, x
+FEDA: FF FF FF isb $ffff, x
+FEDD: FF FF FF isb $ffff, x
+FEE0: FF FF FF isb $ffff, x
+FEE3: FF FF FF isb $ffff, x
+FEE6: FF FF FF isb $ffff, x
+FEE9: FF FF FF isb $ffff, x
+FEEC: FF FF FF isb $ffff, x
+FEEF: FF FF FF isb $ffff, x
+FEF2: FF FF FF isb $ffff, x
+FEF5: FF FF FF isb $ffff, x
+FEF8: FF FF FF isb $ffff, x
+FEFB: FF FF FF isb $ffff, x
+FEFE: FF FF FF isb $ffff, x
+FF01: FF FF FF isb $ffff, x
+FF04: FF FF FF isb $ffff, x
+FF07: FF FF FF isb $ffff, x
+FF0A: FF FF FF isb $ffff, x
+FF0D: FF FF FF isb $ffff, x
+FF10: FF FF FF isb $ffff, x
+FF13: FF FF FF isb $ffff, x
+FF16: FF FF FF isb $ffff, x
+FF19: FF FF FF isb $ffff, x
+FF1C: FF FF FF isb $ffff, x
+FF1F: FF FF FF isb $ffff, x
+FF22: FF FF FF isb $ffff, x
+FF25: FF FF FF isb $ffff, x
+FF28: FF FF FF isb $ffff, x
+FF2B: FF FF FF isb $ffff, x
+FF2E: FF FF FF isb $ffff, x
+FF31: FF FF FF isb $ffff, x
+FF34: FF FF FF isb $ffff, x
+FF37: FF FF FF isb $ffff, x
+FF3A: FF FF FF isb $ffff, x
+FF3D: FF FF FF isb $ffff, x
+FF40: FF FF FF isb $ffff, x
+FF43: FF FF FF isb $ffff, x
+FF46: FF FF FF isb $ffff, x
+FF49: FF FF FF isb $ffff, x
+FF4C: FF FF FF isb $ffff, x
+FF4F: FF FF FF isb $ffff, x
+FF52: FF FF FF isb $ffff, x
+FF55: FF FF FF isb $ffff, x
+FF58: FF FF FF isb $ffff, x
+FF5B: FF FF FF isb $ffff, x
+FF5E: FF FF FF isb $ffff, x
+FF61: FF FF FF isb $ffff, x
+FF64: FF FF FF isb $ffff, x
+FF67: FF FF FF isb $ffff, x
+FF6A: FF FF FF isb $ffff, x
+FF6D: FF FF FF isb $ffff, x
+FF70: FF FF FF isb $ffff, x
+FF73: FF FF FF isb $ffff, x
+FF76: FF FF FF isb $ffff, x
+FF79: FF FF FF isb $ffff, x
+FF7C: FF FF FF isb $ffff, x
+FF7F: FF FF FF isb $ffff, x
+FF82: FF FF FF isb $ffff, x
+FF85: FF FF FF isb $ffff, x
+FF88: FF FF FF isb $ffff, x
+FF8B: FF FF FF isb $ffff, x
+FF8E: FF FF FF isb $ffff, x
+FF91: FF FF FF isb $ffff, x
+FF94: FF FF FF isb $ffff, x
+FF97: FF FF FF isb $ffff, x
+FF9A: FF FF FF isb $ffff, x
+FF9D: FF FF FF isb $ffff, x
+FFA0: FF FF FF isb $ffff, x
+FFA3: FF FF FF isb $ffff, x
+FFA6: FF FF FF isb $ffff, x
+FFA9: FF FF FF isb $ffff, x
+FFAC: FF FF FF isb $ffff, x
+FFAF: FF FF FF isb $ffff, x
+FFB2: FF FF FF isb $ffff, x
+FFB5: FF FF FF isb $ffff, x
+FFB8: FF FF FF isb $ffff, x
+FFBB: FF FF FF isb $ffff, x
+FFBE: FF FF FF isb $ffff, x
+FFC1: FF FF FF isb $ffff, x
+FFC4: FF FF FF isb $ffff, x
+FFC7: FF FF FF isb $ffff, x
+FFCA: FF FF FF isb $ffff, x
+FFCD: FF FF FF isb $ffff, x
+FFD0: FF FF FF isb $ffff, x
+FFD3: FF FF FF isb $ffff, x
+FFD6: FF FF FF isb $ffff, x
+FFD9: FF FF FF isb $ffff, x
+FFDC: FF FF FF isb $ffff, x
+FFDF: FF FF FF isb $ffff, x
+FFE2: FF FF FF isb $ffff, x
+FFE5: FF FF FF isb $ffff, x
+FFE8: FF FF FF isb $ffff, x
+FFEB: FF FF FF isb $ffff, x
+FFEE: FF FF FF isb $ffff, x
+FFF1: FF FF FF isb $ffff, x
+FFF4: FF FF FF isb $ffff, x
+FFF7: FF FF FF isb $ffff, x
+FFFA: 00       brk
+FFFB: 02       kil
+FFFC: 00       brk
+FFFD: FC 47 FC nop $fc47, x

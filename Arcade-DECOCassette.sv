@@ -24,159 +24,7 @@
 
 module emu
 (
-	//Master input clock
-	input         CLK_50M,
-
-	//Async reset from top-level module.
-	//Can be used as initial reset.
-	input         RESET,
-
-	//Must be passed to hps_io module
-	inout  [48:0] HPS_BUS,
-
-	//Base video clock. Usually equals to CLK_SYS.
-	output        CLK_VIDEO,
-
-	//Multiple resolutions are supported using different CE_PIXEL rates.
-	//Must be based on CLK_VIDEO
-	output        CE_PIXEL,
-
-	//Video aspect ratio for HDMI. Most retro systems have ratio 4:3.
-	//if VIDEO_ARX[12] or VIDEO_ARY[12] is set then [11:0] contains scaled size instead of aspect ratio.
-	output [12:0] VIDEO_ARX,
-	output [12:0] VIDEO_ARY,
-
-	output  [7:0] VGA_R,
-	output  [7:0] VGA_G,
-	output  [7:0] VGA_B,
-	output        VGA_HS,
-	output        VGA_VS,
-	output        VGA_DE,    // = ~(VBlank | HBlank)
-	output        VGA_F1,
-	output [1:0]  VGA_SL,
-	output        VGA_SCALER, // Force VGA scaler
-	output        VGA_DISABLE, // analog out is off
-
-	input  [11:0] HDMI_WIDTH,
-	input  [11:0] HDMI_HEIGHT,
-	output        HDMI_FREEZE,
-	output        HDMI_BLACKOUT,
-	output        HDMI_BOB_DEINT,
-
-`ifdef MISTER_FB
-	// Use framebuffer in DDRAM
-	// FB_FORMAT:
-	//    [2:0] : 011=8bpp(palette) 100=16bpp 101=24bpp 110=32bpp
-	//    [3]   : 0=16bits 565 1=16bits 1555
-	//    [4]   : 0=RGB  1=BGR (for 16/24/32 modes)
-	//
-	// FB_STRIDE either 0 (rounded to 256 bytes) or multiple of pixel size (in bytes)
-	output        FB_EN,
-	output  [4:0] FB_FORMAT,
-	output [11:0] FB_WIDTH,
-	output [11:0] FB_HEIGHT,
-	output [31:0] FB_BASE,
-	output [13:0] FB_STRIDE,
-	input         FB_VBL,
-	input         FB_LL,
-	output        FB_FORCE_BLANK,
-
-`ifdef MISTER_FB_PALETTE
-	// Palette control for 8bit modes.
-	// Ignored for other video modes.
-	output        FB_PAL_CLK,
-	output  [7:0] FB_PAL_ADDR,
-	output [23:0] FB_PAL_DOUT,
-	input  [23:0] FB_PAL_DIN,
-	output        FB_PAL_WR,
-`endif
-`endif
-
-	output        LED_USER,  // 1 - ON, 0 - OFF.
-
-	// b[1]: 0 - LED status is system status OR'd with b[0]
-	//       1 - LED status is controled solely by b[0]
-	// hint: supply 2'b00 to let the system control the LED.
-	output  [1:0] LED_POWER,
-	output  [1:0] LED_DISK,
-
-	// I/O board button press simulation (active high)
-	// b[1]: user button
-	// b[0]: osd button
-	output  [1:0] BUTTONS,
-
-	input         CLK_AUDIO, // 24.576 MHz
-	output [15:0] AUDIO_L,
-	output [15:0] AUDIO_R,
-	output        AUDIO_S,   // 1 - signed audio samples, 0 - unsigned
-	output  [1:0] AUDIO_MIX, // 0 - no mix, 1 - 25%, 2 - 50%, 3 - 100% (mono)
-
-	//ADC
-	inout   [3:0] ADC_BUS,
-
-	//SD-SPI
-	output        SD_SCK,
-	output        SD_MOSI,
-	input         SD_MISO,
-	output        SD_CS,
-	input         SD_CD,
-
-	//High latency DDR3 RAM interface
-	//Use for non-critical time purposes
-	output        DDRAM_CLK,
-	input         DDRAM_BUSY,
-	output  [7:0] DDRAM_BURSTCNT,
-	output [28:0] DDRAM_ADDR,
-	input  [63:0] DDRAM_DOUT,
-	input         DDRAM_DOUT_READY,
-	output        DDRAM_RD,
-	output [63:0] DDRAM_DIN,
-	output  [7:0] DDRAM_BE,
-	output        DDRAM_WE,
-
-	//SDRAM interface with lower latency
-	output        SDRAM_CLK,
-	output        SDRAM_CKE,
-	output [12:0] SDRAM_A,
-	output  [1:0] SDRAM_BA,
-	inout  [15:0] SDRAM_DQ,
-	output        SDRAM_DQML,
-	output        SDRAM_DQMH,
-	output        SDRAM_nCS,
-	output        SDRAM_nCAS,
-	output        SDRAM_nRAS,
-	output        SDRAM_nWE,
-
-`ifdef MISTER_DUAL_SDRAM
-	//Secondary SDRAM
-	//Set all output SDRAM_* signals to Z ASAP if SDRAM2_EN is 0
-	input         SDRAM2_EN,
-	output        SDRAM2_CLK,
-	output [12:0] SDRAM2_A,
-	output  [1:0] SDRAM2_BA,
-	inout  [15:0] SDRAM2_DQ,
-	output        SDRAM2_nCS,
-	output        SDRAM2_nCAS,
-	output        SDRAM2_nRAS,
-	output        SDRAM2_nWE,
-`endif
-
-	input         UART_CTS,
-	output        UART_RTS,
-	input         UART_RXD,
-	output        UART_TXD,
-	output        UART_DTR,
-	input         UART_DSR,
-
-	// Open-drain User port.
-	// 0 - D+/RX
-	// 1 - D-/TX
-	// 2..6 - USR2..USR6
-	// Set USER_OUT to 1 to read from USER_IN.
-	input   [6:0] USER_IN,
-	output  [6:0] USER_OUT,
-
-	input         OSD_STATUS
+    `include "sys/emu_ports.vh"
 );
 
 ///////// Default values for ports not used in this core /////////
@@ -396,6 +244,10 @@ assign ioctl_din        = 8'd0;
 // =========================================================================
 
 // Reset and DIP handling
+// RESET-EXTEND-DARKSOFT-2026-08-24: TRIED + RULED OUT (HW 2026-08-24). Theory was a boot-time race
+// between the CPU coming out of reset and the SDRAM read-prefetch servicing dongle address 0. HW: still
+// requires a soft reset/reload — a few extra clk_sys cycles of reset extension made no difference.
+// Reverted to the original purely-combinational form.
 wire reset = (RESET | status[0] | buttons[1] | ioctl_download);
 // PAUSE-LOAD-2026-06-28: pause uses a reset WITHOUT ioctl_download so it can engage DURING the cassette load too
 // (user wants the loader pausable — pause works post-load but the `| ioctl_download` above killed it during the load).
@@ -1099,6 +951,12 @@ wire ddr_loading = ioctl_download;
 // A one-time power-on reset fixes both: the load path runs through the load, SDRAM retains data across a game
 // reset (no re-download), and the swatch captures download-time events without being wiped.
 // (Earlier SDRAM-LOAD-RESET only dropped ioctl_download from this reset — not enough; status[0]/RESET also hit it.)
+// SDRAM-POR-PLL-GATE-2026-08-24: TRIED + RULED OUT (HW 2026-08-24). Theory was that this ~15-cycle
+// countdown (ungated, running on possibly-pre-lock clk_sys) could race pll_locked and leave the SDRAM
+// controller/prefetch-FSM state (sd_last_addr etc.) wrong after a cold FPGA config. DISPROVEN: user
+// confirmed reselecting the SAME stuck Darksoft MRA from the OSD (no FPGA reprogram, ioctl_download only
+// — sdram_ld_reset does NOT refire on this path at all) ALSO unwedges it. Since the SDRAM POR/init domain
+// is never touched by that path, it structurally cannot be the fix — reverted to the original ungated form.
 reg [3:0] sdram_por_cnt = 4'd0;
 wire      sdram_ld_reset = ~&sdram_por_cnt;   // high ~15 clk_sys cycles after config, then low FOREVER
 always @(posedge clk_sys) if (sdram_ld_reset) sdram_por_cnt <= sdram_por_cnt + 1'b1;
@@ -1867,9 +1725,26 @@ wire [7:0] dark_flags = {dk7,dk6,dk5,dk4,dk3,dk2,dk1,dk0};
 // decodark.dasm. cell0=LEFT=bit0. Row A ~ $Fx = still in BIOS loader; $0x/$1x/$5x high byte = game ran + hung in RAM.
 wire [7:0] diag_pc_hi = diag_pc_live[15:8];
 wire [7:0] diag_pc_lo = diag_pc_live[7:0];
+// DARKSOFT-FLAGS-ROW-2026-08-24: dark_flags (dk0-dk7 above) was already computed/latching but never
+// actually displayed — only the PC trace was wired to diag_show/diag_lit. Adding a 3rd row so ONE
+// compile shows both WHERE the 6502 is stuck (rows A/B) AND whether the SDRAM/dongle path ever fired
+// (row C: c0 BIOS-fetch | c1 $E5xx hit | c2 dongle_re | c3 dongle_we | c4 sd_ready | c5 sd_wr |
+// c6 byte!=00 | c7 byte!=FF) — for comparing a stuck-yellow-screen capture against a working one.
+wire       dark_rowC = (vcnt >= 9'd64) && (vcnt < 9'd80);
+// DIAG-D0BYTE-ROW-2026-08-24: HW 2026-08-24 confirmed the 6502 is parked at $F8E9 (decodark.dasm:
+// `jmp $f8e9`, a deliberate self-loop) — reached ONLY via the $F8DE failure branch of the "DECO"
+// 4-byte signature check at $F8C1 (4x `lda $e500` compared against 'D','E','C','O'). diag_d0byte
+// (already built, was dormant/never displayed — see its own comment above, ~L1701) captures exactly
+// the byte the 6502 saw on ITS FIRST read of dongle offset 0, which is byte 1 of that exact check.
+// Row D: 0x44 expected/correct; 0x00 = stale/prefetch-race (read beat the SDRAM fetch); 0xFF = open
+// bus; 0x45/0x43/0x4F = an off-by-one shift. Row also gates diag_d0byte_cap so an all-dark row D means
+// the capture never fired at all (BIOS never got as far as reading offset 0 via $E500).
+wire       diag_rowD = (vcnt >= 9'd88) && (vcnt < 9'd104);
 wire       diag_lit  = (diag_rowA && diag_pc_hi[diag_cell]) |
-                       (diag_rowB && diag_pc_lo[diag_cell]);
-wire       diag_show = (diag_rowA | diag_rowB) && diag_in && !diag_gap;
+                       (diag_rowB && diag_pc_lo[diag_cell]) |
+                       (dark_rowC && dark_flags[diag_cell]) |
+                       (diag_rowD && diag_d0byte[diag_cell]);
+wire       diag_show = (diag_rowA | diag_rowB | dark_rowC | diag_rowD) && diag_in && !diag_gap;
 // AUDIO-ALIVE-PROBE-2026-06-11: audio liveness rows (revert: delete this block + restore the pass-through
 // diag_r/g/b below). Row A (vcnt16-32)=aud_flags; Row B (40-56)=audio PC low; Row C (64-80)=audio PC high.
 wire       aud_rowC = (vcnt >= 9'd64) && (vcnt < 9'd80);
@@ -1897,6 +1772,12 @@ wire [7:0] aud_diag_b = aud_show ? (aud_lit ? 8'hFF : 8'h20) : core_b;
 // wire [7:0] diag_r = aud_diag_r;
 // wire [7:0] diag_g = aud_diag_g;
 // wire [7:0] diag_b = aud_diag_b;
+// SWATCH-OFF-2026-08-24: overlay back to PASS-THROUGH (clean playable build). All probe logic (diag_pc_live,
+// dark_flags, diag_d0byte, rows A-D) stays intact and latching — only the on-screen bands are hidden.
+// DIAG-REVERT-2026-08-24: restore overlay = re-enable the 3 diag_show lines below, comment these 3 out.
+// wire [7:0] diag_r = diag_show ? (diag_lit ? 8'hFF : 8'h20) : core_r;
+// wire [7:0] diag_g = diag_show ? (diag_lit ? 8'hFF : 8'h20) : core_g;
+// wire [7:0] diag_b = diag_show ? (diag_lit ? 8'hFF : 8'h20) : core_b;
 wire [7:0] diag_r = core_r;
 wire [7:0] diag_g = core_g;
 wire [7:0] diag_b = core_b;
