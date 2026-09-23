@@ -70,6 +70,8 @@ localparam CONF_STR = {
 	"P2O[25],Pause when OSD is open,On,Off;",
 	"P2O[26],Dim video after 10s,On,Off;",
 	"-;",
+	"O[29:27],Fast Load,Off,2x,4x,8x,16x;",
+	"-;",
 	"DIP;",
 	"-;",
 	"R0,Reset;",
@@ -695,15 +697,31 @@ wire [7:0]  mcu_host_dout;
 wire [7:0]  mcu_host_sts;       // DBBSTS exposure 2026-05-30: real STATUS reg from the i8041 core
 wire        mcu_host_dout_oe;
 wire        tape_motor_on, tape_direction;
+
+// Fast Load (OSD): while the tape motor runs, the 8041 and the tape streamer both run 2x-16x faster; nothing else changes.
+// 8041 enable: clk_sys/16 (6 MHz) -> /8, /4, /2, /1.  Tape enable: clk_sys/20000 (4.8 kHz) -> /10000 ... /1250.
+wire [2:0] fl_sel    = (status[29:27] > 3'd4) ? 3'd4 : status[29:27];   // 0=Off 1=2x 2=4x 3=8x 4=16x
+wire       fast_load = (fl_sel != 3'd0) & tape_motor_on;
+reg  [2:0] fl_hcnt = 3'd0;
+reg [13:0] fl_tdiv = 14'd0;
+wire [13:0] fl_tlim = (fl_sel == 3'd1) ? 14'd9999 : (fl_sel == 3'd2) ? 14'd4999 :
+                      (fl_sel == 3'd3) ? 14'd2499 : 14'd1249;
+wire       fl_hce   = (fl_sel == 3'd1) ? (fl_hcnt == 3'd7) : (fl_sel == 3'd2) ? (fl_hcnt[1:0] == 2'd3) :
+                      (fl_sel == 3'd3) ? fl_hcnt[0] : 1'b1;
+wire       fl_tce   = (fl_tdiv >= fl_tlim);
+always @(posedge clk_sys) begin
+	fl_hcnt <= fl_hcnt + 3'd1;
+	fl_tdiv <= fl_tce ? 14'd0 : fl_tdiv + 14'd1;
+end
+wire ce_hclk_mcu = (fast_load ? fl_hce : ce_hclk_raw) & ~pause_cpu;
+wire ce_tape_mcu = (fast_load ? fl_tce : ce_tape_raw) & ~pause_cpu;
 wire [1:0]  tape_speed_select;
 wire        tape_data, tape_clock, tape_bot, tape_eot;
 
 // i8041 MCU + program memory
-wire [10:0] mcu_pmem_addr;   // DIAG-2026-06-03: 8041 program counter for the handshake probe
-wire [7:0]  mcu_dmem_r3, mcu_dmem_r5, mcu_dmem_r1;  // DIAG-REVERT-2026-06-05: rb0 r3/r5/r1 taps for the $317 probe
 i8041_top i8041_inst (
 	.clk_sys         (clk_sys),
-	.ce_hclk         (ce_hclk),
+	.ce_hclk         (ce_hclk_mcu),
 	.clk_8041        (clk_8041),
 	.reset_n         (~reset),
 	.cs_n            (mcu_cs_n),
@@ -727,12 +745,7 @@ i8041_top i8041_inst (
 	.prog_n          (),
 	.rom_we          (mcurom_we),
 	.rom_addr_w      (mcurom_addr),
-	.rom_data_w      (mcurom_dout),
-	.pmem_addr_o     (mcu_pmem_addr),
-	// DIAG-REVERT-2026-06-05: rb0 r3/r5/r1 taps for the $317 byte-assembly probe
-	.dmem_r3_o       (mcu_dmem_r3),
-	.dmem_r5_o       (mcu_dmem_r5),
-	.dmem_r1_o       (mcu_dmem_r1)
+	.rom_data_w      (mcurom_dout)
 );
 
 // MCU ↔ Tape ↔ Main CPU interface
@@ -746,9 +759,9 @@ wire [7:0]  mcu_host_din;  // CPU dout, latched by iface, presented to i8041
 
 mcu_tape_iface mcu_tape_iface_inst (
 	.clk_sys              (clk_sys),
-	.ce_hclk              (ce_hclk),
+	.ce_hclk              (ce_hclk_mcu),
 	.ce_hclk1             (ce_hclk1),
-	.ce_tape              (ce_tape),
+	.ce_tape              (ce_tape_mcu),
 	.reset                (reset),
 	.mcu_p1_in            (mcu_p1_in),
 	.mcu_p1_out           (mcu_p1_out),
@@ -859,7 +872,7 @@ dpram #(.address_width(16), .data_width(8)) cassette_bram (
 
 tape_streamer tape_streamer_inst (
 	.clk_sys           (clk_sys),
-	.ce_tape           (ce_tape),
+	.ce_tape           (ce_tape_mcu),
 	.reset             (reset),
 	.image_addr        (tape_image_addr),
 	.image_q           (tape_image_q),
@@ -1178,11 +1191,6 @@ wire [7:0]  main_to_audio_data;
 wire        audio_irq;
 reg         audio_nmi_enable_reg;   // $E416 bit 0 — main CPU's master enable for audio NMI
 
-// AUDIO-ALIVE-PROBE-2026-06-11: liveness taps from audio_cpu + ay8910_pair (revert: delete this, the
-// .dbg_* port connections, the sticky-flag block after ay8910_pair, and the swatch re-point near L1740).
-wire [15:0] aud_pc;
-wire        aud_sync, aud_nmi_n, aud_nmi_en, aud_ay_pulse;
-
 audio_cpu audio_cpu_inst (
 	.clk_sys      (clk_sys),
 	.ce_audio     (ce_audio),
@@ -1203,12 +1211,7 @@ audio_cpu audio_cpu_inst (
 	.sound_from_main_re(audio_from_main_re),
 	.sound_to_main(audio_to_main_data),
 	.sound_from_main(main_to_audio_data),
-	.audio_nmi_master_enable(audio_nmi_enable_reg),
-	// AUDIO-ALIVE-PROBE-2026-06-11
-	.dbg_pc      (aud_pc),
-	.dbg_sync    (aud_sync),
-	.dbg_nmi_n   (aud_nmi_n),
-	.dbg_nmi_en  (aud_nmi_en)
+	.audio_nmi_master_enable(audio_nmi_enable_reg)
 );
 
 // =========================================================================
@@ -1263,34 +1266,9 @@ ay8910_pair ay8910_pair_inst (
 	.ay2_data_we  (ay2_data_we),
 	.ay2_addr_we  (ay2_addr_we),
 	.audio_dout   (ay_data_out),
-	.sound_out    ({ay_right, ay_left}),
-	.dbg_ay_pulse (aud_ay_pulse)   // AUDIO-ALIVE-PROBE-2026-06-11
+	.sound_out    ({ay_right, ay_left})
 );
 
-// AUDIO-ALIVE-PROBE-2026-06-11: sticky-from-reset liveness flags + per-frame PC snapshot for the swatch.
-// Revert: delete this whole block (and the swatch re-point near L1740, the dbg_* ports/wires).
-//  aud_flags bits (swatch Row A, cell0=bit0=LSB, white=set):
-//   c0 ranBIOS($Fxxx) c1 ranRAM($0xxx) c2 nmiEN c3 nmiFIRED c4 mainIRQ c5 $A000read c6 AYwrite c7 AYpulse
-reg al_ranrom, al_ranram, al_nmien, al_nmifired, al_irq, al_a000, al_aywr, al_aypulse;
-reg [15:0] aud_pc_live, aud_pc_snap;
-always @(posedge clk_sys) begin
-	if (reset) begin
-		al_ranrom<=1'b0; al_ranram<=1'b0; al_nmien<=1'b0; al_nmifired<=1'b0;
-		al_irq<=1'b0; al_a000<=1'b0; al_aywr<=1'b0; al_aypulse<=1'b0;
-	end else begin
-		if (aud_pc[15:11]==5'h1F)                            al_ranrom   <= 1'b1;  // fetched audio BIOS $F800+
-		if (aud_pc[15:12]==4'h0)                             al_ranram   <= 1'b1;  // touched work RAM $0xxx
-		if (aud_nmi_en)                                      al_nmien    <= 1'b1;  // BIOS armed NMI ($1000-17FF)
-		if (~aud_nmi_n)                                      al_nmifired <= 1'b1;  // NMI line asserted
-		if (audio_irq)                                       al_irq      <= 1'b1;  // main sent a sound cmd
-		if (audio_from_main_re)                              al_a000     <= 1'b1;  // audio read $A000 (handshake)
-		if (ay1_data_we|ay1_addr_we|ay2_data_we|ay2_addr_we) al_aywr     <= 1'b1;  // AY register write decoded
-		if (aud_ay_pulse)                                    al_aypulse  <= 1'b1;  // jt49 saw the write pulse
-	end
-	if (aud_sync)                  aud_pc_live <= aud_pc;       // track live opcode-fetch PC
-	if (hcnt==9'd0 && vcnt==9'd8)  aud_pc_snap <= aud_pc_live;  // freeze once per frame (stable display)
-end
-wire [7:0] aud_flags = {al_aypulse, al_aywr, al_a000, al_irq, al_nmifired, al_nmien, al_ranram, al_ranrom};
 
 // =========================================================================
 // VIDEO SUBSYSTEM (tasks 07-11)
@@ -1402,452 +1380,6 @@ wire [7:0] core_r = {core_r_hi, core_r_hi};
 wire [7:0] core_g = {core_g_hi, core_g_hi};
 wire [7:0] core_b = {core_b_hi, core_b_hi};
 
-// ===== DIAG-REVERT-2026-06-03e: 8041-PC + HANDSHAKE PROBE (delete this block + restore the
-//       pause .r/.g/.b ports below, AND the i8041_top pmem_addr_o port, to revert). PAST 59;
-//       the 8041 RECEIVES the cmd (cmd_seen+ibf) but never answers (obf/req dark). This shows
-//       the 8041's OWN program counter + execution milestones to split "MCU not running" vs
-//       "MCU running but mis-handling the command". mcu_pmem_addr = the 8041 pmem fetch addr.
-// THREE rows, 8 cells, 16px, leftmost cell = MSB / first milestone. white=1.
-//   ROW 1 (vcnt 16-31): LIVE $E502 status byte the BIOS polls (D7 left -> D0 right):
-//        cell0 present(0=yes) 1=(1) 2=(1) 3 bot_eot 4 ERR/ 5 EOT/ 6 FNO/ 7 REQ/
-//        ACTIVE-LOW "/" bits: 0 = ASSERTED. BIOS waits for FNO/=0 (cmd ack), then REQ/=0 (data ready).
-//   ROW 2 (vcnt 40-55): TAPE-DATA-PATH activity, cell0..7 (sticky; white=seen-at-least-once):
-//        0 $022(8041 reading cmds=alive) 1 $0FB(8041 dispatching) 2 motor_on(P1 motor commanded)
-//        3 tape_clock TOGGLED(streamer advancing) 4 tape_data TOGGLED(bits present)
-//        5 OUT-DBB($2C8|$3EF=8041 sent a byte) 6 OBF(byte avail to 6502) 7 6502 read $E502
-//   READ (counter-never-appears = no chunks loading): the first DARK cell localizes the break --
-//     cell2 motor DARK       => 8041 never commands the motor on a read (firmware/P1 decode).
-//     cell2 lit, cell3/4 DARK => motor on but streamer NOT advancing (tape_streamer/ce_tape/EOT).
-//     cell3/4 lit, cell5 DARK => tape bits flow but 8041 never OUT-DBBs (8041 tape-read assembly).
-//     cell5 lit, cell6/7 DARK => 8041 sends bytes but 6502 never sees them (DBB/status path).
-//   ROW 3 (vcnt 64-79): FIRST command byte the 8041 received. MSB(bit7) leftmost. $33 = priming.
-// READ: ROW1 flickering = MCU running. ROW2 is the tape pipeline L->R; first dark cell = the break.
-reg [10:0] diag_mcupc;
-reg [7:0]  diag_cmdval;   // byte the 8041 received on the last command write ($33 expected)
-reg diag_m022, diag_m0ed, diag_m0fb, diag_m170, diag_m0f3, diag_m003;
-reg diag_we501, diag_cmd_seen, diag_ibf, diag_obf, diag_req, diag_motor, diag_we500, diag_re502;
-// TAPE-ACTIVITY-PROBE-2026-06-04: tape data-path view (motor / clock-toggle / data-toggle / OUT-DBB)
-reg diag_outdbb, diag_clk_hi, diag_clk_lo, diag_dat_hi, diag_dat_lo;
-// READ-PIPELINE-PROBE-2026-06-04: trace WHERE the tape read dies + capture block-0 bytes.
-//   ROW1 milestones, ROW2=$0300[0] (expect 'H'=$48), ROW3=$033C ($0300+60, expect $8E=142).
-reg diag_m2e8, diag_m1a7, diag_m007, diag_rd_e500, diag_wr_0300;
-reg [7:0] diag_b0, diag_b60;
-// READ-PIPELINE-PROBE rev2 2026-06-04: is the tape ACTUALLY in the data region when the 8041 reads?
-// tape_clock only toggles in the DATA region (static in leader/bot/gap). Track its LIVE activity and
-// latch it at the 8041's data-sample ($0B4). clklive@read DARK = RCLK static while reading = tape NOT
-// in data = it reads nothing real => constant byte. LIT = tape IS streaming => bug is deeper.
-reg        tape_clk_prev;
-reg [16:0] tape_clk_idle;                 // clk_sys cycles since last tape_clock edge
-reg        diag_clklive_rd, diag_bot_rd;  // latched AT the $0B4 sample
-wire       tape_clk_live = (tape_clk_idle < 17'd100000);  // edge within ~1ms => RCLK toggling => in data
-// READ-PIPELINE-PROBE rev3 2026-06-04: does the 8041 get PAST the 0xAA header sync, or stuck in it?
-//   $272 = header-sync loop entered, $282 = header FOUND (sync exit), $304 = data-read loop,
-//   $2C8 = data byte OUT-DBB'd. If $282/$304/$2C8 DARK => 8041 never matches our 0xAA => stuck in
-//   sync, $05 is a STALE byte (bug = our header/data stream). If LIT => it IS reading data bytes.
-reg diag_m272, diag_m282, diag_m304, diag_m2c8;
-// READ-PIPELINE-PROBE rev4 2026-06-04: WHERE in the data loop does it die before $2C8?
-//   $317 = loop EXIT (8 bits done), $2C7 = the send path, $329/$33E = the WRONG branches at $317.
-//   $317 DARK => loop hangs mid-byte (never completes 8 bits). $317 LIT + $329/$33E LIT => it
-//   finished the byte but branched AWAY from the send (bank/flag wrong at $317).
-reg diag_m317, diag_m2c7, diag_m329, diag_m33e;
-reg diag_m1cc, diag_m242;  // DIAG-REVERT-2026-06-05: interrupt-corruptor milestones ($1CC writes rb0.r1=#$1B; $242 = IBF handler)
-// DIAG-REVERT-2026-06-05: latched 8041 rb0 r3/r5/r1 at PC==$317 (one-shot, held for readout).
-// r3 = the 8041's assembled tape byte (THE A-vs-B splitter); r5/r1 = the nonzero CRC flags that
-// divert $318/$31B to the error branches ($33E/$329) instead of the send ($2C8).
-reg [7:0] diag_r3_317, diag_r5_317, diag_r1_317;
-reg       diag_b317_cap;
-// DIAG-REVERT-2026-06-06: sticky-OR of mode_set ($E402). Any bit ever set => the GAME wrote the video
-// mode register => game code is EXECUTING. ROW2 all-dark after load => game never ran (DECO-222/hand-off).
-// ROW2 nonzero => game runs & configures video => bug is our BG-layer render. See
-// Claude/decocass_video_mode_mechanism_2026-06-06.md.
-reg [7:0] diag_modeset_seen;
-// DIAG-REVERT-2026-06-06: 6502-PC init-bisect milestones (sticky). PC = cpu_addr when cpu_sync=1.
-// Localizes the early-init hang via entered-sub vs returned-from-sub pairs across $24CA/$2606/$4A7D.
-// (Prior F131/F146/0503 all proved lit; collapsed to $05D4 = "init reached".)
-reg diag_pc05D4, diag_pc24CA, diag_pc05DC, diag_pc2606, diag_pc05DF, diag_pc4A7D, diag_pc05E2;
-// DIAG-REVERT-2026-06-06: LIVE 6502 PC bar = latest opcode-fetch addr. ROW2=hi byte (expect $4A while in
-// $4A7D), ROW3=lo byte (loop position). Multiple screenshots show the PC spread = where it spins.
-reg [15:0] diag_pc_live;
-// DIAG-REVERT-2026-06-06: lowest stack-page ($01xx) write addr. Normal jsr pushes stay HIGH ($01Fx down);
-// a $4A7D copy trampling the stack drives this LOW => corrupts saved rts return => $0000 jam.
-reg [7:0] diag_sp_min;
-always @(posedge clk_sys or posedge reset) begin
-    if (reset) begin
-        diag_mcupc <= 11'h000; diag_cmdval <= 8'h00;
-        diag_m022<=1'b0; diag_m0ed<=1'b0; diag_m0fb<=1'b0; diag_m170<=1'b0; diag_m0f3<=1'b0; diag_m003<=1'b0;
-        diag_we501<=1'b0; diag_cmd_seen<=1'b0; diag_ibf<=1'b0; diag_obf<=1'b0;
-        diag_req<=1'b0; diag_motor<=1'b0; diag_we500<=1'b0; diag_re502<=1'b0;
-        diag_outdbb<=1'b0; diag_clk_hi<=1'b0; diag_clk_lo<=1'b0; diag_dat_hi<=1'b0; diag_dat_lo<=1'b0;
-        diag_m2e8<=1'b0; diag_m1a7<=1'b0; diag_m007<=1'b0; diag_rd_e500<=1'b0; diag_wr_0300<=1'b0;
-        diag_b0<=8'h00; diag_b60<=8'h00;
-        tape_clk_prev<=1'b0; tape_clk_idle<=17'd0; diag_clklive_rd<=1'b0; diag_bot_rd<=1'b0;
-        diag_m272<=1'b0; diag_m282<=1'b0; diag_m304<=1'b0; diag_m2c8<=1'b0;
-        diag_m317<=1'b0; diag_m2c7<=1'b0; diag_m329<=1'b0; diag_m33e<=1'b0;
-        diag_r3_317<=8'h00; diag_r5_317<=8'h00; diag_r1_317<=8'h00; diag_b317_cap<=1'b0;  // DIAG-REVERT-2026-06-05
-        diag_m1cc<=1'b0; diag_m242<=1'b0;  // DIAG-REVERT-2026-06-05
-        diag_modeset_seen <= 8'h00;  // DIAG-REVERT-2026-06-06
-        diag_pc05D4<=1'b0; diag_pc24CA<=1'b0; diag_pc05DC<=1'b0; diag_pc2606<=1'b0; diag_pc05DF<=1'b0; diag_pc4A7D<=1'b0; diag_pc05E2<=1'b0;  // DIAG-REVERT-2026-06-06
-        diag_pc_live <= 16'h0000;  // DIAG-REVERT-2026-06-06
-        diag_sp_min <= 8'hFF;  // DIAG-REVERT-2026-06-06
-    end else begin
-        diag_mcupc <= mcu_pmem_addr;                  // live 8041 PC
-        diag_modeset_seen <= diag_modeset_seen | mode_set_reg;  // DIAG-REVERT-2026-06-06: accumulate any mode_set bit ever written
-        // DIAG-REVERT-2026-06-06: bisect early-init hang ($05D9 jsr$24CA -> $05DC jsr$2606 -> $05DF jsr$4A7D -> $05E2)
-        if (cpu_sync) begin
-            diag_pc_live <= cpu_addr;  // DIAG-REVERT-2026-06-06: live PC bar
-            if (cpu_addr == 16'h05D4) diag_pc05D4 <= 1'b1;
-            if (cpu_addr == 16'h24CA) diag_pc24CA <= 1'b1;
-            if (cpu_addr == 16'h05DC) diag_pc05DC <= 1'b1;
-            if (cpu_addr == 16'h2606) diag_pc2606 <= 1'b1;
-            if (cpu_addr == 16'h05DF) diag_pc05DF <= 1'b1;
-            if (cpu_addr == 16'h4A7D) diag_pc4A7D <= 1'b1;
-            if (cpu_addr == 16'h05E2) diag_pc05E2 <= 1'b1;
-        end
-        // DIAG-REVERT-2026-06-06: stack-trample detector (lowest $01xx write addr; write = !cpu_rw_n)
-        if (!cpu_rw_n && cpu_addr[15:8] == 8'h01 && cpu_addr[7:0] < diag_sp_min)
-            diag_sp_min <= cpu_addr[7:0];
-        // DIAG-REVERT-2026-06-05: one-shot capture of the 8041's assembled byte + CRC flags at PC==$317.
-        // dmem_mem[3]/[5]/[1] (rb0 r3/r5/r1) are settled by the time the fetch addr reaches $317.
-        if (mcu_pmem_addr == 11'h317 && !diag_b317_cap) begin
-            diag_r3_317   <= mcu_dmem_r3;   // assembled tape byte
-            diag_r5_317   <= mcu_dmem_r5;   // CRC flag (checked first)
-            diag_r1_317   <= mcu_dmem_r1;   // CRC flag (checked second)
-            diag_b317_cap <= 1'b1;
-        end
-        case (mcu_pmem_addr)                          // sticky MCU milestones
-            11'h022: diag_m022 <= 1'b1;
-            11'h0ED: diag_m0ed <= 1'b1;
-            11'h0FB: diag_m0fb <= 1'b1;
-            11'h0F3: diag_m0f3 <= 1'b1;   // reached the jnc@$0F3 (so the add executed; no interrupt-divert before it)
-            11'h0F5: diag_m170 <= 1'b1;   // reached $0F5 = jnc did NOT branch => carry was 1 after add $DB
-            11'h003: diag_m003 <= 1'b1;   // IBF interrupt vector => the EN-I@$0ED interrupt DIVERTED the dispatch
-            11'h2C8: diag_outdbb <= 1'b1; // OUT DBB,A (r3 response) — 8041 sent a byte to the 6502
-            11'h3EF: diag_outdbb <= 1'b1; // OUT DBB,A (mem[$3F] response)
-            // READ-PIPELINE-PROBE-2026-06-04 milestones:
-            11'h2E8: diag_m2e8 <= 1'b1;   // read_block_b actually DISPATCHED
-            11'h1A7: diag_m1a7 <= 1'b1;   // reached the RCLK edge-sync SAMPLE loop (dark => not read)
-            11'h007: diag_m007 <= 1'b1;   // timer ISR fired (read may be timer-driven)
-            11'h1CC: diag_m1cc <= 1'b1;   // DIAG-REVERT-2026-06-05: the rb0.r1=#$1B corruptor ran (interrupt mis-dispatch)
-            11'h242: diag_m242 <= 1'b1;   // DIAG-REVERT-2026-06-05: IBF interrupt handler ran (should be DARK on a read)
-            // rev3 header-sync milestones:
-            11'h272: diag_m272 <= 1'b1;   // entered the 0xAA header sync loop
-            11'h282: diag_m282 <= 1'b1;   // FOUND the 0xAA header (sync exit) ★
-            11'h304: diag_m304 <= 1'b1;   // reached the data-read byte loop ★
-            11'h2C8: diag_m2c8 <= 1'b1;   // OUT-DBB'd a data byte ★
-            // rev4 loop-completion milestones:
-            11'h317: diag_m317 <= 1'b1;   // loop EXIT (8 bits done) ★
-            11'h2C7: diag_m2c7 <= 1'b1;   // the send path (-> $2C8)
-            11'h329: diag_m329 <= 1'b1;   // WRONG branch (r1!=0)
-            11'h33E: diag_m33e <= 1'b1;   // WRONG branch (r5!=0)
-            default: ;
-        endcase
-        // 6502 / handshake side
-        if (cpu_we_e5xx && cpu_addr[7:0]==8'h01) diag_we501    <= 1'b1;
-        if (cpu_we_e5xx && cpu_addr[7:0]==8'h00) diag_we500    <= 1'b1;
-        if (cpu_re_e5xx && cpu_addr[7:0]==8'h02) diag_re502    <= 1'b1;
-        // READ-PIPELINE-PROBE-2026-06-04: 6502 pulling a tape byte + buffering it at $0300/$033C
-        if (cpu_re_e5xx && cpu_addr[7:0]==8'h00)      diag_rd_e500 <= 1'b1;            // read DBBOUT
-        if (!cpu_rw_n && ce_hclk4 && cpu_addr==16'h0300) begin diag_wr_0300<=1'b1; diag_b0 <=cpu_dout; end
-        if (!cpu_rw_n && ce_hclk4 && cpu_addr==16'h033C) begin diag_wr_0300<=1'b1; diag_b60<=cpu_dout; end
-        // READ-PIPELINE-PROBE rev2: tape_clock live-activity (resets on each edge; climbs if static)
-        tape_clk_prev <= tape_clock;
-        if (tape_clock != tape_clk_prev)        tape_clk_idle <= 17'd0;
-        else if (tape_clk_idle != 17'h1FFFF)    tape_clk_idle <= tape_clk_idle + 17'd1;
-        if (mcu_pmem_addr == 11'h0B4) begin     // latch tape state AT the 8041 data-sample
-            diag_clklive_rd <= tape_clk_live;
-            diag_bot_rd     <= tape_bot;
-        end
-        if (mcu_a0 && !mcu_wr_n) begin
-            diag_cmd_seen <= 1'b1;
-            diag_cmdval <= mcu_host_din;  // LATEST command (was FIRST-only): does the BIOS ever send a tape-READ cmd?
-        end
-        if (mcu_host_sts[1])                     diag_ibf      <= 1'b1;
-        if (mcu_host_sts[0])                     diag_obf      <= 1'b1;
-        if (~mcu_p1_out[7])                      diag_req      <= 1'b1;   // REQ/ asserted (active-low)
-        if (tape_motor_on)                       diag_motor    <= 1'b1;
-        // TAPE-ACTIVITY-PROBE-2026-06-04: did the streamer clock/data ever take BOTH values?
-        // (hi & lo => it toggled => tape advancing; static at idle => only one ever sets)
-        if (tape_clock) diag_clk_hi <= 1'b1; else diag_clk_lo <= 1'b1;
-        if (tape_data)  diag_dat_hi <= 1'b1; else diag_dat_lo <= 1'b1;
-    end
-end
-
-// E500-ERR-CAPTURE-2026-06-08: capture the POST-LOAD $E500 status byte = the value the BIOS checks at
-// $0582 (lda $e500 / cmp #0 / bne -> jmp $F000), i.e. the exact byte E500-ZERO-TEST forces to 0. Gated on
-// rt_seen05E2 (the SAME condition as the override) so we catch the post-decompressor STATUS read, not an
-// early dongle/data read. `dongle_din_full` is the PRE-override value the 6502 actually sees at $E500 (the
-// override zeroes e5xx_to_cpu, which is DOWNSTREAM of this wire), so we read the TRUE byte even while the
-// CPU is fed 0. cflyball = NODONG => this byte == raw 8041 DBBOUT == mem[$3F]. Now known from build 2:
-// $08 (bit3) = the transport-timeout from $0E9 (see TRANSPORT-PROBE). One-shot: hold the FIRST post-$05E2
-// $E500 read (= the $0582 check). Shown as swatch Row C. Revert: delete this block + Row C below.
-reg [7:0] diag_e500_err;
-reg       diag_e500_err_cap;
-always @(posedge clk_sys) begin
-	if (reset) begin
-		diag_e500_err     <= 8'h00;
-		diag_e500_err_cap <= 1'b0;
-	end else if (rt_seen05E2 && cpu_re_e5xx && cpu_addr == 16'hE500 && !diag_e500_err_cap) begin
-		diag_e500_err     <= dongle_din_full;
-		diag_e500_err_cap <= 1'b1;
-	end
-end
-
-// WRITE-PATH-PROBE-2026-06-10 (rev2, index-aware): Row B = does the dongle reach the SDRAM writer, and on which
-// ioctl_index (sticky, cleared on sdram_ld_reset so it captures DURING the download). cell0=bit0=LSB, white=set:
-//  b0 ioctl_download | b1 ioctl_wr | b2 ioctl_wr & index==0 | b3 ioctl_wr & index==1 | b4 ioctl_wr & index>=2 |
-//  b5 ioctl_addr>=$80000 (download reached 512 KB+) | b6 dongle_type==7 | b7 ioctl_wr & dongle_ld (= the sd_wr trigger)
-// Decode (dongle now expected on index 1): b1=0 -> FSM never sees ioctl_wr (domain/wiring); b3=1 -> dongle DOES
-// arrive as index 1 (so if c5 still 0, the FSM/handshake is the bug, not the index); b3=0 & b4=1 -> dongle comes in
-// at a DIFFERENT index (read its bucket); b3=0 & b4=0 -> dongle ROM not downloaded at all (file missing/zip);
-// b5=0 -> download truncated before 512 KB; b7 should track c5.
-reg wp0,wp1,wp2,wp3,wp4,wp5,wp6,wp7;
-always @(posedge clk_sys) begin
-	if (sdram_ld_reset) {wp7,wp6,wp5,wp4,wp3,wp2,wp1,wp0} <= 8'd0;
-	else begin
-		if (ioctl_download)                       wp0 <= 1'b1;
-		if (ioctl_wr)                             wp1 <= 1'b1;
-		if (ioctl_wr && ioctl_index==8'd0)        wp2 <= 1'b1;
-		if (ioctl_wr && ioctl_index==8'd1)        wp3 <= 1'b1;
-		if (ioctl_wr && ioctl_index>=8'd2)        wp4 <= 1'b1;
-		if (ioctl_wr && ioctl_addr>=25'h80000)    wp5 <= 1'b1;
-		if (dongle_type==4'd7)                    wp6 <= 1'b1;
-		if (ioctl_wr && dongle_ld)                wp7 <= 1'b1;
-	end
-end
-wire [7:0] write_path_flags = {wp7,wp6,wp5,wp4,wp3,wp2,wp1,wp0};
-
-// DONGLE-BYTE0-PROBE-2026-06-10: Row B = the dongle byte the 6502 actually reads at offset 0 (the "DECO" signature
-// byte at donglerom[0]). EXPECT 0x44 ('D') if SDRAM load + read delivery are correct. 0x45/0x43/0x4F = off-by-one
-// shift; 0x00 = stale/prefetch-race (read beat the SDRAM fetch); 0xFF = open bus. Fires ONCE, on the first $E500
-// read while the dongle counter (dprom_addr) is still 0; latch inits 0x00 (all-dark Row B = never fired = BIOS
-// didn't read offset 0 via $E500). Captures dprom_q_ddr = exactly what the 6502 sees at $E500 (off0 -> prom_q).
-reg [7:0] diag_d0byte;
-reg       diag_d0byte_cap;
-always @(posedge clk_sys) begin
-	if (sdram_ld_reset) begin
-		diag_d0byte     <= 8'h00;
-		diag_d0byte_cap <= 1'b0;
-	end else if (!diag_d0byte_cap && cpu_re_e5xx && cpu_addr == 16'hE500 && dprom_addr == 20'd0) begin
-		diag_d0byte     <= dprom_q_ddr;
-		diag_d0byte_cap <= 1'b1;
-	end
-end
-
-// TRANSPORT-PROBE-2026-06-08 (rev2 — LIVE signals; the milestone-flag version was UNRELIABLE and is removed).
-// The reset's SLOWDOWN = the 8041's $0BC hole-seek retry loop: it drives the tape FORWARD and waits for a
-// P2.5 (=tape_bot|tape_eot) edge inside a timer window, retries 200x2, then logs $08. EOT geometry matches
-// MAME statically, so this localizes the ASYNC failure. READ Row A *LIVE, DURING the slowdown* (it lasts
-// seconds) to see where the tape actually is and what P2.5 is doing while the MCU hangs. cell0=bit0:
-//   c0 seen05E2 | c1 tape_bot | c2 tape_eot | c3 motor_on | c4 direction(1=fwd) | c5 fast | c6 clk_tog | c7 data_tog
-// clk_tog/data_tog = tape clock/data toggled within ~1ms => streamer is in the DATA region (clock/data
-// alternate there; static in leader/BOT/gap/EOT/trailer). DECODE during the hang:
-//   c2(eot)=1 & c6(clk_tog)=0 => tape parked AT an end hole (the $0BC wait-for-FALL can hang if clamped).
-//   c2=0 & c6=0               => tape in the GAP between data and EOT — waiting for a rise that hasn't come.
-//   c3(motor)=0               => tape NOT advancing (problem is motor/direction, not the hole).
-//   c6=1                      => still in DATA — not near EOT at all.
-// Revert: delete this block + the swatch rows below.
-reg        tape_clk_p, tape_dat_p;
-reg [16:0] tape_clk_age, tape_dat_age;   // clk_sys cycles since last edge (FFFF.. = static)
-always @(posedge clk_sys) begin
-	if (reset) begin
-		tape_clk_p<=1'b0; tape_dat_p<=1'b0; tape_clk_age<=17'h1FFFF; tape_dat_age<=17'h1FFFF;
-	end else begin
-		tape_clk_p <= tape_clock; tape_dat_p <= tape_data;
-		if (tape_clock != tape_clk_p)       tape_clk_age <= 17'd0;
-		else if (tape_clk_age != 17'h1FFFF) tape_clk_age <= tape_clk_age + 17'd1;
-		if (tape_data  != tape_dat_p)       tape_dat_age <= 17'd0;
-		else if (tape_dat_age != 17'h1FFFF) tape_dat_age <= tape_dat_age + 17'd1;
-	end
-end
-wire tape_clk_tog = (tape_clk_age < 17'd96000);   // edge within ~1ms @96MHz => toggling => DATA region
-wire tape_dat_tog = (tape_dat_age < 17'd96000);
-wire [7:0] eot_flags = {tape_dat_tog, tape_clk_tog, tape_speed_select[1], tape_direction,
-                        tape_motor_on, tape_eot, tape_bot, rt_seen05E2};
-
-// RESET-TRACE-2026-06-07: cflyball now LOADS + DECOMPRESSES correctly (seeds proven == MAME), but after a
-// screen flash it RESETS to the BIOS loader. HW reset + IRQ are wired out (reset = RESET|status0|buttons1|
-// ioctl_download ; deco222 .irq_n=1'b1), so the 6502 must reach BIOS in SOFTWARE. Catch HOW: once the game
-// runs past the decompressor (PC reaches $05E2), freeze the FIRST restart-class BIOS entry the 6502 fetches
-// + the game PC just before it, + sticky landmark flags. Decode:
-//   rt_entry = $F003/$F670 => coin-NMI fired mid-game ; $F000/$F053 => COLD restart (jmp/jam to reset path).
-//   rt_pre   = the exact PC right before the jump -> disassemble FlyingBall-Loaded.hex there to see what it
-//              was doing (poll a register? consume decompressed data?). PC = cpu_addr when cpu_sync=1.
-// Revert: delete this block + restore the WHITE-SCREEN-PROBE seed rows below.
-reg        rt_seen05E2, rt_cap;
-reg        rt_f000, rt_f003, rt_f053, rt_f670, rt_f32d;   // sticky: BIOS landmark fetched AFTER $05E2
-reg [15:0] rt_prevpc;                                     // rolling last opcode-fetch PC before the entry
-reg [15:0] rt_entry, rt_pre;                              // frozen: BIOS-entry PC + the PC before it
-always @(posedge clk_sys) begin
-	if (reset) begin
-		rt_seen05E2<=1'b0; rt_cap<=1'b0;
-		rt_f000<=1'b0; rt_f003<=1'b0; rt_f053<=1'b0; rt_f670<=1'b0; rt_f32d<=1'b0;
-		rt_prevpc<=16'h0000; rt_entry<=16'h0000; rt_pre<=16'h0000;
-	end else if (cpu_sync) begin
-		if (cpu_addr == 16'h05E2) rt_seen05E2 <= 1'b1;        // decompressor returned = game running deep
-		if (rt_seen05E2) begin
-			if (cpu_addr == 16'hF000) rt_f000 <= 1'b1;        // cold reset vector (JMP table)
-			if (cpu_addr == 16'hF003) rt_f003 <= 1'b1;        // NMI vector  (JMP $F670)
-			if (cpu_addr == 16'hF053) rt_f053 <= 1'b1;        // cold init body
-			if (cpu_addr == 16'hF670) rt_f670 <= 1'b1;        // NMI/coin handler
-			if (cpu_addr == 16'hF32D) rt_f32d <= 1'b1;        // BIOS main init re-ran => full restart
-			if (!rt_cap) begin
-				if (cpu_addr==16'hF000 || cpu_addr==16'hF003 ||
-				    cpu_addr==16'hF053 || cpu_addr==16'hF670) begin
-					rt_entry <= cpu_addr;   // the restart-class BIOS entry it jumped to
-					rt_pre   <= rt_prevpc;  // the instruction right before the jump
-					rt_cap   <= 1'b1;
-				end else begin
-					rt_prevpc <= cpu_addr;  // track latest PC (incl. normal BIOS service calls)
-				end
-			end
-		end
-	end
-end
-
-// READ-PIPELINE-PROBE-2026-06-04 row mapping (cell0 = LEFTMOST = bit0; read bit0->bit7 L->R):
-wire diag_clk_tog = diag_clk_hi & diag_clk_lo;   // tape clock toggled => streamer advancing
-wire diag_dat_tog = diag_dat_hi & diag_dat_lo;   // tape data toggled  => bits present
-// ROW1 = read pipeline.  L->R cells: $2E8(read dispatched) $1A7(SAMPLE loop) $007(timer ISR)
-//        OUT-DBB | 6502-rd-$E500 | 6502-wr-$0300 | clk-toggled | data-toggled
-//        ** $1A7 (cell1) DARK => the 8041 never runs the read sample loop = "not being read" **
-// ROW1 rev4: L->R = $304(loop) | $317(EXIT★) | $2C7(send-path) | $329(wrong-br) | $33E(wrong-br) |
-//            $2C8(SENT) | $1A7(edge-sync) | clk-live@read
-//   ★ cell1 ($317) DARK => loop HANGS mid-byte. cell1 LIT + $329/$33E LIT => finished byte, branched
-//     AWAY from the send. cell2 ($2C7) LIT + cell5 ($2C8) DARK => stalls between send-path and send.
-// DIAG-REVERT-2026-06-05 ROW1 cells L->R (cell0=bit0): $003(IBF vec) $007(timer vec) $1CC(r1=#1B) $242(IBFhdlr) $329 $33E $317 $2C8
-// ORIGINAL (read-pipeline view):
-// wire [7:0] diag_hi  = {diag_clklive_rd, diag_m1a7, diag_m2c8, diag_m33e,
-//                        diag_m329, diag_m2c7, diag_m317, diag_m304};
-// DONGLE-PROBE-2026-06-07: ROW1 = 1st $E500 dongle byte (orig 8041-milestone bits commented below)
-// wire [7:0] diag_hi  = {diag_outdbb, diag_m317, diag_m33e, diag_m329,   // DIAG-2026-06-05: cell7 = OUTDBB (RELIABLE send flag; diag_m2c8 was DEAD via dup 11'h2C8 case)
-//                        diag_m242, diag_m1cc, diag_m007, diag_m003};
-// WHITE-SCREEN-PROBE-2026-06-07: overlay repointed to the 6 zero-page seeds (seed01..seed06); the
-// diag_d500 capture block above is left intact but its 3 row assignments are commented out here.
-// wire [7:0] diag_hi  = diag_d500_0;
-// DIAG-REVERT-2026-06-05: ROW2/ROW3 repointed from the STALE 6502-stored bytes (diag_b0/b60, both
-// read $05 = useless: the 8041 never sends, so the 6502 re-reads a dead DBBOUT) to the 8041's OWN
-// assembled byte r3 + the failing CRC flag r5, latched at PC==$317. r3 == correct data byte =>
-// sampling is fine => bug is the $11E CRC execution (B); r3 == garbage => sampling/phase (A).
-// To revert: restore the two diag_b0/diag_b60 lines and comment the diag_r3_317/diag_r5_317 lines.
-// ROW2 = $0300 byte 0   (STALE $05 — was useless)
-// wire [7:0] diag_lo  = diag_b0;
-// ROW3 = $033C byte 60  (STALE $05 — was useless)
-// wire [7:0] diag_chk = diag_b60;
-// ROW2 = 8041 assembled byte r3 @ $317  (THE A-vs-B readout; compare to block-0 byte0)
-// DIAG-REVERT-2026-06-06: original below, uncomment to restore the $317 byte readout
-// wire [7:0] diag_lo  = diag_r3_317;
-// ROW2 now = sticky-OR of mode_set ($E402). All-dark after load => game never wrote video mode => game
-// not executing (DECO-222/hand-off). Nonzero (esp. bit3 bkg_ena) => game runs => bug is our BG render.
-// DIAG-REVERT-2026-06-06: ROW2 was mode_set; now = live 6502 PC HIGH byte (expect $4A while spinning)
-// wire [7:0] diag_lo  = diag_modeset_seen;
-// DIAG-REVERT-2026-06-06: ROW2 now = lowest $01xx stack write (low = trample). // diag_pc_live[15:8]
-// wire [7:0] diag_lo  = diag_sp_min;   // DIAG-REVERT-2026-06-06
-// WHITE-SCREEN-PROBE-2026-06-07: commented out (was DONGLE-PROBE ROW2 = 2nd $E500 dongle byte)
-// wire [7:0] diag_lo  = diag_d500_1;
-// ROW3 = diag_b0 = the byte the 6502 RECEIVED & stored at $0300 (DIAG-2026-06-05). r5=r1=$00 => byte PASSES => 8041 sends.
-//        $20 here = read+delivery OK; $05/other = host-bus DBBOUT delivery bug.
-// DIAG-REVERT-2026-06-06: original below, uncomment to restore the 6502-received-byte readout
-// wire [7:0] diag_chk = diag_b0;
-// ROW3 = 6502-PC init bisect L->R: c0=$05D4 c1=$24CA c2=$05DC c3=$2606 c4=$05DF c5=$4A7D c6=$05E2 (c7 unused)
-// DIAG-REVERT-2026-06-06: ROW3 was PC milestones; now = live 6502 PC LOW byte (loop position)
-// wire [7:0] diag_chk = {1'b0, diag_pc05E2, diag_pc4A7D, diag_pc05DF, diag_pc2606, diag_pc05DC, diag_pc24CA, diag_pc05D4};
-// wire [7:0] diag_chk = diag_pc_live[7:0];   // DIAG-REVERT-2026-06-06
-// WHITE-SCREEN-PROBE-2026-06-07: commented out (was DONGLE-PROBE ROW3 = 3rd $E500 dongle byte)
-// wire [7:0] diag_chk = diag_d500_2;
-
-wire [8:0] diag_x    = hcnt - 9'd8;
-wire       diag_in   = (hcnt >= 9'd8) && (hcnt < 9'd136);   // 8 cells * 16px
-wire [2:0] diag_cell = diag_x[6:4];
-wire       diag_gap  = (diag_x[3:0] >= 4'd14);              // 2px gap between cells
-// TRANSPORT-PROBE-2026-06-08 swatch — 2 rows, top->bottom (cell0=LEFT=bit0, white=1; read each as a hex byte):
-//   Row A (eot_flags, LIVE — read DURING the slowdown): c0 seen05E2 | c1 tape_bot | c2 tape_eot |
-//          c3 motor_on | c4 direction(1=fwd) | c5 fast | c6 clk_tog(in DATA) | c7 data_tog
-//   Row B ($E500 byte): the value the BIOS trips on at $0582 (proven = STATUS reg, not error/data).
-//   RESET-TRACE rt_* and the milestone block remain as plumbing (rt_seen05E2 gates E500-ZERO-TEST).
-wire       diag_rowA = (vcnt >= 9'd16) && (vcnt < 9'd32);    // DARKSOFT-PC-PROBE: 6502 PC[15:8] (high byte)
-wire       diag_rowB = (vcnt >= 9'd40) && (vcnt < 9'd56);    // DARKSOFT-PC-PROBE: 6502 PC[7:0] (low byte = loop position)
-// SWATCH-DARKSOFT: Row A = sticky darksoft boot flags (cell0=bit0=LSB, white=set):
-//  c0 6502 fetched BIOS ($Fxxx) | c1 6502 hit $E5xx | c2 dongle read | c3 dongle write |
-//  c4 SDRAM ready | c5 SDRAM written | c6 dongle byte!=00 | c7 dongle byte!=FF
-reg dk0,dk1,dk2,dk3,dk4,dk5,dk6,dk7;
-always @(posedge clk_sys) begin
-	// SWATCH-C5-UNMASK-2026-06-10: clear on sdram_ld_reset (NOT `reset`) — `reset` includes ioctl_download,
-	// which zeroed these EVERY cycle of the download, so c5 (sd_wr, fires ONLY during the load) could never latch.
-	if (sdram_ld_reset) {dk7,dk6,dk5,dk4,dk3,dk2,dk1,dk0} <= 8'd0;
-	else begin
-		if (cpu_addr[15:12]==4'hF) dk0 <= 1'b1;
-		if (cpu_addr[15:8]==8'hE5) dk1 <= 1'b1;
-		if (dongle_re)             dk2 <= 1'b1;
-		if (dongle_we)             dk3 <= 1'b1;
-		if (sd_ready)              dk4 <= 1'b1;
-		if (sd_wr)                 dk5 <= 1'b1;
-		if (dprom_q_ddr != 8'h00)  dk6 <= 1'b1;
-		if (dprom_q_ddr != 8'hFF)  dk7 <= 1'b1;
-	end
-end
-wire [7:0] dark_flags = {dk7,dk6,dk5,dk4,dk3,dk2,dk1,dk0};
-// DARKSOFT-PC-PROBE-2026-06-10: Row A = 6502 PC[15:8], Row B = PC[7:0] (live opcode-fetch PC, latched on cpu_sync
-// via diag_pc_live @~L1440). At the "Loading..." lock the PC settles into the hang loop -> read both bytes, map to
-// decodark.dasm. cell0=LEFT=bit0. Row A ~ $Fx = still in BIOS loader; $0x/$1x/$5x high byte = game ran + hung in RAM.
-wire [7:0] diag_pc_hi = diag_pc_live[15:8];
-wire [7:0] diag_pc_lo = diag_pc_live[7:0];
-// DARKSOFT-FLAGS-ROW-2026-08-24: dark_flags (dk0-dk7 above) was already computed/latching but never
-// actually displayed — only the PC trace was wired to diag_show/diag_lit. Adding a 3rd row so ONE
-// compile shows both WHERE the 6502 is stuck (rows A/B) AND whether the SDRAM/dongle path ever fired
-// (row C: c0 BIOS-fetch | c1 $E5xx hit | c2 dongle_re | c3 dongle_we | c4 sd_ready | c5 sd_wr |
-// c6 byte!=00 | c7 byte!=FF) — for comparing a stuck-yellow-screen capture against a working one.
-wire       dark_rowC = (vcnt >= 9'd64) && (vcnt < 9'd80);
-// DIAG-D0BYTE-ROW-2026-08-24: HW 2026-08-24 confirmed the 6502 is parked at $F8E9 (decodark.dasm:
-// `jmp $f8e9`, a deliberate self-loop) — reached ONLY via the $F8DE failure branch of the "DECO"
-// 4-byte signature check at $F8C1 (4x `lda $e500` compared against 'D','E','C','O'). diag_d0byte
-// (already built, was dormant/never displayed — see its own comment above, ~L1701) captures exactly
-// the byte the 6502 saw on ITS FIRST read of dongle offset 0, which is byte 1 of that exact check.
-// Row D: 0x44 expected/correct; 0x00 = stale/prefetch-race (read beat the SDRAM fetch); 0xFF = open
-// bus; 0x45/0x43/0x4F = an off-by-one shift. Row also gates diag_d0byte_cap so an all-dark row D means
-// the capture never fired at all (BIOS never got as far as reading offset 0 via $E500).
-wire       diag_rowD = (vcnt >= 9'd88) && (vcnt < 9'd104);
-wire       diag_lit  = (diag_rowA && diag_pc_hi[diag_cell]) |
-                       (diag_rowB && diag_pc_lo[diag_cell]) |
-                       (dark_rowC && dark_flags[diag_cell]) |
-                       (diag_rowD && diag_d0byte[diag_cell]);
-wire       diag_show = (diag_rowA | diag_rowB | dark_rowC | diag_rowD) && diag_in && !diag_gap;
-// AUDIO-ALIVE-PROBE-2026-06-11: audio liveness rows (revert: delete this block + restore the pass-through
-// diag_r/g/b below). Row A (vcnt16-32)=aud_flags; Row B (40-56)=audio PC low; Row C (64-80)=audio PC high.
-wire       aud_rowC = (vcnt >= 9'd64) && (vcnt < 9'd80);
-wire       aud_lit  = (diag_rowA && aud_flags[diag_cell])      |
-                      (diag_rowB && aud_pc_snap[diag_cell])    |
-                      (aud_rowC  && aud_pc_snap[8 + diag_cell]);
-wire       aud_show = (diag_rowA | diag_rowB | aud_rowC) && diag_in && !diag_gap;
-wire [7:0] aud_diag_r = aud_show ? (aud_lit ? 8'hFF : 8'h20) : core_r;
-wire [7:0] aud_diag_g = aud_show ? (aud_lit ? 8'hFF : 8'h20) : core_g;
-wire [7:0] aud_diag_b = aud_show ? (aud_lit ? 8'hFF : 8'h20) : core_b;
-// Overlay ON (bands over the running game; E500-ZERO-TEST keeps it booting). To hide for clean shots, swap
-// to pass-through: comment the 3 diag_show lines, uncomment the 3 core_* lines.
-// wire [7:0] diag_r = core_r;
-// wire [7:0] diag_g = core_g;
-// wire [7:0] diag_b = core_b;
-// SWATCH-OFF-2026-06-10: overlay flipped to PASS-THROUGH for clean reference screenshots. All probe logic
-// (diag_pc_live, dark_flags, etc.) stays intact and latching — only the on-screen bands are hidden.
-// DIAG-REVERT-2026-06-10: restore overlay = re-enable the 3 diag_show lines, comment the 3 core_* lines.
-// wire [7:0] diag_r = diag_show ? (diag_lit ? 8'hFF : 8'h20) : core_r;
-// wire [7:0] diag_g = diag_show ? (diag_lit ? 8'hFF : 8'h20) : core_g;
-// wire [7:0] diag_b = diag_show ? (diag_lit ? 8'hFF : 8'h20) : core_b;
-// SWATCH-OFF-2026-06-11: overlay back to PASS-THROUGH (clean screen for graphics work). The audio probe
-// scaffolding (dbg taps, al_* flags, aud_diag_*) STAYS in the tree per "leave the diagnostics" — only the
-// on-screen bands are hidden. Re-show: restore the 3 aud_diag_* lines, comment the 3 core_* lines.
-// wire [7:0] diag_r = aud_diag_r;
-// wire [7:0] diag_g = aud_diag_g;
-// wire [7:0] diag_b = aud_diag_b;
-// SWATCH-OFF-2026-08-24: overlay back to PASS-THROUGH (clean playable build). All probe logic (diag_pc_live,
-// dark_flags, diag_d0byte, rows A-D) stays intact and latching — only the on-screen bands are hidden.
-// DIAG-REVERT-2026-08-24: restore overlay = re-enable the 3 diag_show lines below, comment these 3 out.
-// wire [7:0] diag_r = diag_show ? (diag_lit ? 8'hFF : 8'h20) : core_r;
-// wire [7:0] diag_g = diag_show ? (diag_lit ? 8'hFF : 8'h20) : core_g;
-// wire [7:0] diag_b = diag_show ? (diag_lit ? 8'hFF : 8'h20) : core_b;
-wire [7:0] diag_r = core_r;
-wire [7:0] diag_g = core_g;
-wire [7:0] diag_b = core_b;
-// ===== end DIAG-REVERT-2026-06-03c =====
 
 // Palette lookup (task 11)
 //
@@ -1922,13 +1454,9 @@ pause #(8,8,8,24) pause_inst (
 	.user_button   (m_pause),
 	.pause_request (1'b0),
 	.options       (~status[26:25]),  // [0]=pause when OSD open; [1]=dim video after 10s
-	// DIAG-REVERT-2026-06-03: feed MCU-progress overlay (restore core_* to revert)
-	// .r             (core_r),
-	// .g             (core_g),
-	// .b             (core_b),
-	.r             (diag_r),
-	.g             (diag_g),
-	.b             (diag_b),
+	.r             (core_r),
+	.g             (core_g),
+	.b             (core_b),
 	.pause_cpu     (pause_cpu),
 	.rgb_out       (rgb_pause)
 );

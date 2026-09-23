@@ -283,7 +283,10 @@ module mcu_tape_iface (
         ce_hclk_r  <= ce_hclk;
         ce_hclk_rr <= ce_hclk_r;
     end
-    wire       ce_hclk_rising = ce_hclk_r && !ce_hclk_rr;
+    // FAST-LOAD-16X 2026-09-23: at 16x Fast Load ce_hclk is high every clk_sys, so an edge detect never fires.
+    // For isolated single-cycle pulses (1x-8x) the delayed pulse is identical to the old edge. Original below.
+    // wire       ce_hclk_rising = ce_hclk_r && !ce_hclk_rr;
+    wire       ce_hclk_rising = ce_hclk_r;
 
     // MAME-PARITY 2026-05-30: route the host strobe to the i8041 ONLY for $E5x0/$E5x1
     // (offset bit1 == 0). MAME `decocass_e5xx_w` sends a 6502 write to `upi41_master_w`
