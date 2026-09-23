@@ -978,6 +978,21 @@ reg  [7:0]  dprom_q_ddr;     // latched dongle byte (read result) — feeds dpro
 wire        sd_ready;
 wire [15:0] sd_dout;
 
+// WRITE-DROP-FIX-2026-08-25: HW+Verilator-confirmed root cause of Darksoft v15/v16/v17's cold-boot
+// yellow screen. The write trigger below only checked the LIVE `ioctl_wr && dongle_ld` strobe inside
+// the `!sd_busy` branch — if that single-cycle pulse landed on a cycle where sd_busy was already 1 for
+// ANY other reason (e.g. the tail of a refresh cycle), the byte was silently dropped forever; nothing
+// latched it. Sim with a real SDRAM behavioral model proved exactly this: dongle offset 0 ('D'=0x44)
+// was NEVER written (SDRAM read back the untouched 0x00 erase value) while offset 1 ('E'=0x45, the
+// very next byte) landed correctly — a single dropped write, not a read-side timing race. This affects
+// every dongle type on ioctl_index==1, not just Darksoft; Darksoft/Widel's 1MB streams just make byte 0
+// the first thing that matters (game_id/checksum), so they're the ones that show it.
+// Fix: latch every dongle write request the instant it arrives, unconditionally, and drain it once the
+// FSM is free — makes a dropped byte structurally impossible regardless of the exact collision window.
+reg         wr_req_pend;
+reg  [20:0] wr_req_addr;
+reg  [7:0]  wr_req_data;
+
 // Throttle the HPS while a dongle write is requested/in-flight (combinational so it lands in time).
 assign ioctl_wait = sd_busy || (ioctl_wr && dongle_ld);
 
@@ -991,9 +1006,20 @@ always @(posedge clk_sys) begin
 	if (sdram_ld_reset) begin   // SDRAM-LOAD-RESET-2026-06-10: NOT `reset` — must run during ioctl_download
 		sd_rd <= 0; sd_wr <= 0; sd_refresh <= 0; sd_busy <= 0; sd_was_rd <= 0;
 		sd_last_addr <= 20'hFFFFF; sd_refresh_cnt <= 0; sd_old_ready <= 1'b1;
+		wr_req_pend <= 1'b0;
 	end else begin
 		sd_refresh_cnt <= sd_refresh_cnt + 1'b1;
 		sd_old_ready   <= sd_ready;
+
+		// WRITE-DROP-FIX-2026-08-25: latch every dongle write request unconditionally, the instant it
+		// arrives — independent of sd_busy — so a strobe landing on a busy cycle is queued, not lost.
+		// ioctl_wait (assign above) already includes `ioctl_wr && dongle_ld`, so HPS is already being
+		// held off for this exact cycle regardless; this just makes sure the byte itself is captured.
+		if (ioctl_wr && dongle_ld) begin
+			wr_req_pend <= 1'b1;
+			wr_req_addr <= dongle_ld_addr[20:0];
+			wr_req_data <= ioctl_dout;
+		end
 
 		// Controller accepted the request (ready fell 1->0): drop the strobe so the op runs exactly once.
 		if (sd_old_ready && !sd_ready) begin
@@ -1008,11 +1034,13 @@ always @(posedge clk_sys) begin
 				sd_busy <= 0;
 			end
 		end else begin
-			if (ioctl_wr && dongle_ld) begin                       // LOAD: byte -> 16-bit SDRAM
-				sd_addr  <= dongle_ld_addr[20:1];
-				sd_din   <= {ioctl_dout, ioctl_dout};
-				sd_bs    <= dongle_ld_addr[0] ? 2'b10 : 2'b01;     // high/low byte lane
-				sd_wr    <= 1; sd_busy <= 1; sd_was_rd <= 0;
+			if (wr_req_pend) begin                                 // LOAD: latched byte -> 16-bit SDRAM
+				sd_addr     <= wr_req_addr[20:1];
+				sd_din      <= {wr_req_data, wr_req_data};
+				sd_bs       <= wr_req_addr[0] ? 2'b10 : 2'b01;     // high/low byte lane
+				sd_wr       <= 1; sd_busy <= 1; sd_was_rd <= 0;
+				wr_req_pend <= 1'b0;
+				sd_last_addr <= 20'hFFFFF;                         // write invalidates the read cache -> re-fetch after load
 			end else if (!ioctl_download && dprom_addr[19:0] != sd_last_addr) begin   // READ: prefetch
 				sd_last_addr <= dprom_addr[19:0];
 				sd_addr  <= {7'd0, dprom_addr[19:1]};
