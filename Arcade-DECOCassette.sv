@@ -226,6 +226,22 @@ hps_io #(.CONF_STR(CONF_STR)) hps_io
 	.ps2_key(ps2_key)
 );
 
+// Keyboard coin/start (MAME defaults): 1 = 1P Start, 2 = 2P Start, 5 = Coin 1, 6 = Coin 2.
+reg kb_start1 = 0, kb_start2 = 0, kb_coin1 = 0, kb_coin2 = 0;
+reg kb_old_toggle = 0;
+always @(posedge clk_sys) begin
+	kb_old_toggle <= ps2_key[10];
+	if (kb_old_toggle != ps2_key[10] && !ps2_key[8]) begin
+		case (ps2_key[7:0])
+			8'h16: kb_start1 <= ps2_key[9];
+			8'h1E: kb_start2 <= ps2_key[9];
+			8'h2E: kb_coin1  <= ps2_key[9];
+			8'h36: kb_coin2  <= ps2_key[9];
+			default: ;
+		endcase
+	end
+end
+
 assign ioctl_upload_req = 1'b0;
 assign ioctl_din        = 8'd0;
 
@@ -629,7 +645,7 @@ decocass decocass_inst (
 	// If the loader regresses on this build, flip back to the commented line below (joy[14]) to
 	// isolate — no rebuild-from-memory needed:
 	// .coin_in           (joystick_0[14] | joystick_1[14]),  // P1 or P2 coin → main-CPU NMI (MAME decocass_m.cpp:155-159)
-	.coin_in           (joystick_0[6] | joystick_1[6]),  // P1/P2 coin → main-CPU NMI
+	.coin_in           (joystick_0[6] | joystick_1[6] | kb_coin1 | kb_coin2),  // P1/P2 coin → main-CPU NMI
 	.ram_addr_w        (ram_addr_cpu),
 	.ram_we_w          (ram_we_cpu),
 	.ram_dw            (ram_dw_cpu),
@@ -1089,12 +1105,24 @@ wire signed [7:0] rx0 = joystick_r_analog_0[7:0], ry0 = joystick_r_analog_0[15:8
 wire signed [7:0] rx1 = joystick_r_analog_1[7:0], ry1 = joystick_r_analog_1[15:8];
 wire [3:0] rstick0 = {ry0 > 8'sd48, ry0 < -8'sd48, rx0 < -8'sd48, rx0 > 8'sd48};  // {D,U,L,R}
 wire [3:0] rstick1 = {ry1 > 8'sd48, ry1 < -8'sd48, rx1 < -8'sd48, rx1 > 8'sd48};
-assign in0 = ctower_mode ? {joystick_0[2], joystick_0[3], joystick_0[1:0], rstick0}
-                         : {2'b00, joystick_0[5:4], joystick_0[2], joystick_0[3], joystick_0[1:0]};  // P1 R/L/U/D/B1/B2 active-high, U/D fixed
-assign in1 = ctower_mode ? {joystick_1[2], joystick_1[3], joystick_1[1:0], rstick1}
-                         : {2'b00, joystick_1[5:4], joystick_1[2], joystick_1[3], joystick_1[1:0]};  // P2 R/L/U/D/B1/B2 active-high, U/D fixed
-assign in2 = {~joystick_0[6], ~joystick_1[6], 1'b0,
-              joystick_0[8]|joystick_1[8], joystick_0[7]|joystick_1[7], 3'b000}; // Coins, starts (stray '-' from HEAD removed)
+// DS Telejan (release 14): $E600/$E601 read the keyboard mahjong panel row selected by $E413 bits 3:2 (P2 mirrors P1).
+wire cdsteljn_mode = (dongle_type == 4'd1) && (game_id == 8'd14);
+wire [7:0] mahjong_row;
+mahjong_panel mahjong_panel_inst (
+	.clk_sys (clk_sys),
+	.reset   (reset),
+	.ps2_key (ps2_key),
+	.mux     (coin_counter_reg[3:2]),
+	.row     (mahjong_row)
+);
+assign in0 = cdsteljn_mode ? mahjong_row
+           : ctower_mode   ? {joystick_0[2], joystick_0[3], joystick_0[1:0], rstick0}
+                           : {2'b00, joystick_0[5:4], joystick_0[2], joystick_0[3], joystick_0[1:0]};  // P1 R/L/U/D/B1/B2 active-high, U/D fixed
+assign in1 = cdsteljn_mode ? mahjong_row
+           : ctower_mode   ? {joystick_1[2], joystick_1[3], joystick_1[1:0], rstick1}
+                           : {2'b00, joystick_1[5:4], joystick_1[2], joystick_1[3], joystick_1[1:0]};  // P2 R/L/U/D/B1/B2 active-high, U/D fixed
+assign in2 = {~(joystick_0[6] | kb_coin1), ~(joystick_1[6] | kb_coin2), 1'b0,
+              joystick_0[8]|joystick_1[8]|kb_start2, joystick_0[7]|joystick_1[7]|kb_start1, 3'b000}; // Coins, starts
 
 inputs inputs_inst (
 	.clk_sys          (clk_sys),

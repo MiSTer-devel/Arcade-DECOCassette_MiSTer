@@ -57,10 +57,7 @@ module inputs (
             3'b000:  input_q = in0;      // $E600: IN0 (P1 joystick + buttons)
             3'b001:  input_q = in1;      // $E601: IN1 (P2 cocktail joystick + buttons)
             3'b010:  input_q = in2;      // $E602: IN2 (START, COIN bits)
-            3'b011:  input_q = 8'hFF;    // $E603: mahjong matrix (cdsteljn)
-                                          // TODO(verify-with-mame): cdsteljn/cdsteljn2 use MCU P2[3:0]
-                                          // to mux columns of a 4x16 matrix via ADC scanner.
-                                          // For now, stub with 0xFF (no keys pressed).
+            3'b011:  input_q = 8'hFF;    // $E603: unused (cdsteljn's mahjong panel is on in0/in1, see mahjong_panel.v)
             3'b100,
             3'b101,
             3'b110:  input_q = 8'h00;    // $E604-$E606: quadrature decoder

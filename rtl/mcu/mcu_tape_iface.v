@@ -346,7 +346,11 @@ module mcu_tape_iface (
     // A0-LIVE-READ-FIX v2 2026-06-05: reads use the LIVE 6502 address UNCONDITIONALLY (the 6502 holds
     // $E500 for the whole access, so a0=0 whenever the bus is sampled -> db_o = dbbout_q = $20, and the
     // $E500 read clears OBF). Only WRITES use the latched value (write data captured at access time).
-    assign     mcu_a0    = strobe_is_we ? cpu_addr_lo_lat[0] : cpu_addr_lo[0];
+    // A0-STALE-AFTER-WRITE-FIX 2026-09-23: strobe_is_we stays 1 after a write strobe ends, so a $E500 read right after a
+    // $E501 write (cflyball's $0582 check) presented the write's A0=1 -> db_o = STATUS. Latched A0 only while a strobe is
+    // on the MCU bus; live A0 otherwise (strobes always end within one 6502 cycle). v2 below.
+    // assign     mcu_a0    = strobe_is_we ? cpu_addr_lo_lat[0] : cpu_addr_lo[0];
+    assign     mcu_a0    = hclk_strobe_active ? cpu_addr_lo_lat[0] : cpu_addr_lo[0];
     assign     mcu_dout  = cpu_dout_lat;
 
     // Capture MCU host_dout on read completion

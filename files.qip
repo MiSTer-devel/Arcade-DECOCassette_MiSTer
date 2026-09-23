@@ -78,6 +78,7 @@ set_global_assignment -name VERILOG_FILE rtl/mcu/mcu_tape_iface.v
 
 # I/O (phase 23, 24)
 set_global_assignment -name VERILOG_FILE rtl/io/inputs.v
+set_global_assignment -name VERILOG_FILE rtl/io/mahjong_panel.v
 set_global_assignment -name VERILOG_FILE rtl/io/watchdog.v
 set_global_assignment -name VERILOG_FILE rtl/io/quadrature_adc.v
 
