@@ -189,6 +189,7 @@ wire        ioctl_wait;   // throttles HPS ROM download while a DDR3 dongle writ
 
 wire [15:0] joystick_0, joystick_1;
 wire [15:0] joystick_r_analog_0;   // right analog stick: [15:8]=Y signed, [7:0]=X signed
+wire [15:0] joystick_r_analog_1;   // P2 right analog stick (cocktail)
 wire [10:0] ps2_key;
 
 wire [21:0] gamma_bus;
@@ -221,6 +222,7 @@ hps_io #(.CONF_STR(CONF_STR)) hps_io
 	.joystick_0(joystick_0),
 	.joystick_1(joystick_1),
 	.joystick_r_analog_0(joystick_r_analog_0),
+	.joystick_r_analog_1(joystick_r_analog_1),
 	.ps2_key(ps2_key)
 );
 
@@ -1081,8 +1083,16 @@ wire [7:0] in0, in1, in2;
 // CONTROLS-UD-SWAP-2026-06-10: MiSTer joystick [3]=Up/[2]=Down, MAME IN0 bit2=Up/bit3=Down (decocass.cpp:156-157)
 // -> swap joystick bits 2,3 into in0[2]/[3]. (User after the active-high fix: "up is down, down is up".)
 // Pre-swap: assign in0 = {2'b00, joystick_0[5:0]};  /  assign in1 = {2'b00, joystick_1[5:0]};
-assign in0 = {2'b00, joystick_0[5:4], joystick_0[2], joystick_0[3], joystick_0[1:0]};  // P1 R/L/U/D/B1/B2 active-high, U/D fixed
-assign in1 = {2'b00, joystick_1[5:4], joystick_1[2], joystick_1[3], joystick_1[1:0]};  // P2 R/L/U/D/B1/B2 active-high, U/D fixed
+// The Tower (release 8) has twin 4-way sticks: IN bits[3:0] = right stick R/L/U/D, bits[7:4] = left stick R/L/U/D.
+wire ctower_mode = (dongle_type == 4'd1) && (game_id == 8'd8);
+wire signed [7:0] rx0 = joystick_r_analog_0[7:0], ry0 = joystick_r_analog_0[15:8];
+wire signed [7:0] rx1 = joystick_r_analog_1[7:0], ry1 = joystick_r_analog_1[15:8];
+wire [3:0] rstick0 = {ry0 > 8'sd48, ry0 < -8'sd48, rx0 < -8'sd48, rx0 > 8'sd48};  // {D,U,L,R}
+wire [3:0] rstick1 = {ry1 > 8'sd48, ry1 < -8'sd48, rx1 < -8'sd48, rx1 > 8'sd48};
+assign in0 = ctower_mode ? {joystick_0[2], joystick_0[3], joystick_0[1:0], rstick0}
+                         : {2'b00, joystick_0[5:4], joystick_0[2], joystick_0[3], joystick_0[1:0]};  // P1 R/L/U/D/B1/B2 active-high, U/D fixed
+assign in1 = ctower_mode ? {joystick_1[2], joystick_1[3], joystick_1[1:0], rstick1}
+                         : {2'b00, joystick_1[5:4], joystick_1[2], joystick_1[3], joystick_1[1:0]};  // P2 R/L/U/D/B1/B2 active-high, U/D fixed
 assign in2 = {~joystick_0[6], ~joystick_1[6], 1'b0,
               joystick_0[8]|joystick_1[8], joystick_0[7]|joystick_1[7], 3'b000}; // Coins, starts (stray '-' from HEAD removed)
 
