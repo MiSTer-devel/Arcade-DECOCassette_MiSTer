@@ -3,7 +3,7 @@
   18 Challenge Pro Golf (cprogolf18) — Type 1 dongle.  Auto-generated from MAME decocass.cpp / decocass_m.cpp.
   Shared BIOS (decocass.zip): v0a-.7e (BIOS-A Japan) v1-.5a cassmcu.1c v2.3m v4.10d v3.3j.
   Cassette: progolf18.cas (3024396c)   Dongle: de-0061-a-0.rom (1bc9fccb)
-  Metadata $02E00 = 01 17 00  (dongle_type=0x01, game_id=0x17 = DECO release #23)
+  Metadata $02E00 = 01 0D 00  (dongle_type=0x01, game_id=0x0D: MAME runs cprogolf18 on the cprogolfj/release-13 dongle reset)
 -->
 <misterromdescription>
     <name>18 Challenge Pro Golf</name>
@@ -34,7 +34,7 @@
         <!-- $02D00-$02DFF Spare -->
         <part repeat="0x100">00</part>
         <!-- $02E00-$02EFF Metadata: dongle_type / game_id / swap_mode -->
-        <part>01 17 00</part>
+        <part>01 0D 00</part>
         <part repeat="0xFD">00</part>
         <!-- $02F00-$02FFF Reserved -->
         <part repeat="0x100">00</part>
