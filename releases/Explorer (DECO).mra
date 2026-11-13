@@ -1,21 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-  Explorer (US) (cexplore) — Type 1 Dongle, decocrom overlay-PCB ROM (full 40 KB, both banks)
-
-  Per MAME decocass.cpp: GAME(1982, cexplore, decocass, cexplore, cexplore, decocass_type1_state,
-  init_decocrom, ROT270, "Data East Corporation", "Explorer (DECO Cassette) (US)", 0)  (line 2155).
-  Dongle: Type 1, game_id=18 (DECO release 18), already in dongle_type1.v (decocass_m.cpp:1572-1577,
-  m_type1_map=type1_latch_26_pass_5_inv_2_table). Dongle PROM is MAME BAD_DUMP (reverse-engineered by
-  table analysis, decocass.cpp:1626) — included as a normal ROM part regardless (not a NO_DUMP-style
-  synthesis case like Zeroize).
-
-  decocrom (same mechanism as Treasure Island — see "Treasure Island (US) (set 1) (DECO).mra" for the
-  full writeup): Explorer is the ONE game that fills BOTH 20 KB banks of the overlay ROM (x1-x5 = bank
-  1's full 20 KB, y1-y5 = bank 2's full 20 KB) — the other 3 sets only use 16 KB of bank 1.
-
-  index 1: Type-1 dongle PROM (dp-1180_b.dgl, 32 B, BAD_DUMP).
-  index 2: decocrom overlay-PCB ROM (x1..x5, y1..y5 — 10 x 4 KB = 40 KB, full region).
--->
 <misterromdescription>
     <name>Explorer</name>
     <setname>cexplore</setname>
@@ -27,44 +10,37 @@
 
   	<rotation>vertical (ccw)</rotation>
 
+    <!-- Index 0: ROM -->
     <rom index="0" zip="decocass.zip|cexplore.zip" md5="none">
-        <!-- $00000-$00FFF: Main 6502 BIOS (BIOS B / USA) -->
         <part name="v0b-.7e" crc="23d929b7"/>
 
-        <!-- $01000-$017FF: Audio 6502 BIOS -->
         <part name="v1-.5a" crc="b66b2c2a"/>
 
-        <!-- $01800-$01BFF: MCU ROM -->
         <part name="cassmcu.1c" crc="a6df18fd"/>
 
-        <!-- $01C00-$01CFF: BIOS PROMs (96 B + 160 B pad) -->
         <part name="v2.3m"  crc="238fdb40"/>
         <part name="v4.10d" crc="3b5836b4"/>
         <part name="v3.3j"  crc="51eef657"/>
         <part repeat="0xA0">00</part>
 
-        <!-- $01D00-$02CFF: legacy 4 KB dongle PROM region (unused; dongle moved to ioctl index 1; zeros) -->
         <part repeat="0x1000">00</part>
 
-        <!-- $02D00-$02DFF: Spare -->
         <part repeat="0x100">00</part>
 
-        <!-- $02E00-$02EFF: Metadata (Type 1, game_id=12 hex = DECO release 18, swap_mode unused) -->
         <part>01 12 00</part>
         <part repeat="0xFD">00</part>
 
-        <!-- $02F00-$02FFF: Reserved -->
         <part repeat="0x100">00</part>
 
-        <!-- $03000-: Cassette image -->
         <part name="cexplore.cas" crc="fae49c66"/>
     </rom>
 
+    <!-- Index 1: ROM -->
     <rom index="1" zip="decocass.zip|cexplore.zip" md5="none">
         <part name="dp-1180_b.dgl" crc="c7a9ac8f"/>
     </rom>
 
-    <!-- decocrom overlay-PCB ROM — full 40 KB, both banks populated (x1-x5=bank1, y1-y5=bank2). -->
+    <!-- Index 2: ROM -->
     <rom index="2" zip="decocass.zip|cexplore.zip" md5="none">
         <part name="x1_made_in_japan_18.x1" crc="f2ca58f0"/>
         <part name="x2_made_in_japan_18.x2" crc="75d999bf"/>
@@ -78,9 +54,6 @@
         <part name="y5_made_in_japan_18.y5" crc="0a6b8f03"/>
     </rom>
 
-    <!-- DSW2 bits 16 (Lives) / 17-18 (Bonus Life) / 19 (Difficulty) / 20 (Number of UFOs) are
-         cexplore-specific overrides (decocass.cpp:450-468). Comment: bits 6-8 (absolute 21-23) are
-         "Country Code A through F and Don't Change" — the standard base block. -->
     <switches default="00,00,FF,3F">
         <dip bits="16"    name="Lives"          ids="5,3"/>
         <dip bits="17,18" name="Bonus Life"     ids="10000,1500000,30000,None"/>
@@ -93,5 +66,5 @@
         <dip bits="30" name="Cabinet" ids="Upright,Cocktail"/>
     </switches>
 
-    <buttons names="Button1,Button2,Coin,Start 1P,Start 2P,Pause" default="A,B,Select,Start,R,L"/>
+    <buttons names="Button 1,Button 2,Coin,Start 1P,Start 2P,Pause" default="A,B,Select,Start,R,L"/>
 </misterromdescription>

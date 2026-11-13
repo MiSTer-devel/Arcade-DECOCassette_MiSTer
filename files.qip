@@ -1,113 +1,64 @@
-# DECO Cassette System — minimal skeleton (phase 03).
-# Each subsequent phase appends the RTL it adds.
-
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/chip_pool_pkg.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/ram_pool_pkg.sv
 set_global_assignment -name SYSTEMVERILOG_FILE Arcade-DECOCassette.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/decocassette_dispatcher.sv
 
-# CPU cores (phases 05, 12, 15)
-set_global_assignment -name QIP_FILE rtl/cpu/T65/t65.qip
-set_global_assignment -name VERILOG_FILE rtl/cpu/deco222.v
+# Board: DECO Cassette System
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/boards/decocass/decocass_board.sv
+set_global_assignment -name VERILOG_FILE rtl/boards/decocass/decocass.v
+set_global_assignment -name VERILOG_FILE rtl/boards/decocass/deco222.v
 
-# T48 (MCS-48 / i8041) — for the cassette MCU (phase 15)
-# Instantiates upi41_core (which includes host-bus UPI-41 interface)
-# UPI41 Core packages
-set_global_assignment -name VHDL_FILE rtl/cpu/T48/t48_pack-p.vhd
-set_global_assignment -name VHDL_FILE rtl/cpu/T48/alu_pack-p.vhd
-set_global_assignment -name VHDL_FILE rtl/cpu/T48/cond_branch_pack-p.vhd
-set_global_assignment -name VHDL_FILE rtl/cpu/T48/dmem_ctrl_pack-p.vhd
-set_global_assignment -name VHDL_FILE rtl/cpu/T48/pmem_ctrl_pack-p.vhd
-set_global_assignment -name VHDL_FILE rtl/cpu/T48/decoder_pack-p.vhd
-# UPI41 Core modules
-set_global_assignment -name VHDL_FILE rtl/cpu/T48/upi41_core.vhd
-set_global_assignment -name VHDL_FILE rtl/cpu/T48/upi41_db_bus.vhd
-# T48 Common modules (used by upi41_core)
-set_global_assignment -name VHDL_FILE rtl/cpu/T48/alu.vhd
-set_global_assignment -name VHDL_FILE rtl/cpu/T48/bus_mux.vhd
-set_global_assignment -name VHDL_FILE rtl/cpu/T48/clock_ctrl.vhd
-set_global_assignment -name VHDL_FILE rtl/cpu/T48/cond_branch.vhd
-set_global_assignment -name VHDL_FILE rtl/cpu/T48/db_bus.vhd
-set_global_assignment -name VHDL_FILE rtl/cpu/T48/decoder.vhd
-set_global_assignment -name VHDL_FILE rtl/cpu/T48/dmem_ctrl.vhd
-set_global_assignment -name VHDL_FILE rtl/cpu/T48/int.vhd
-set_global_assignment -name VHDL_FILE rtl/cpu/T48/p1.vhd
-set_global_assignment -name VHDL_FILE rtl/cpu/T48/p2.vhd
-set_global_assignment -name VHDL_FILE rtl/cpu/T48/pmem_ctrl.vhd
-set_global_assignment -name VHDL_FILE rtl/cpu/T48/psw.vhd
-set_global_assignment -name VHDL_FILE rtl/cpu/T48/timer.vhd
+set_global_assignment -name VERILOG_FILE rtl/boards/decocass/sound/audio_cpu.v
+set_global_assignment -name VERILOG_FILE rtl/boards/decocass/sound/sound_latches.v
+set_global_assignment -name VERILOG_FILE rtl/boards/decocass/sound/ay8910_pair.v
 
-# CPU memory map and decode (phase 06)
-set_global_assignment -name VERILOG_FILE rtl/decocass.v
+set_global_assignment -name VERILOG_FILE rtl/boards/decocass/video/video_timing.v
+set_global_assignment -name VERILOG_FILE rtl/boards/decocass/video/video_fg.v
+set_global_assignment -name VERILOG_FILE rtl/boards/decocass/video/video_bg.v
+set_global_assignment -name VERILOG_FILE rtl/boards/decocass/video/video_sprites.v
+set_global_assignment -name VERILOG_FILE rtl/boards/decocass/video/video_missiles.v
+set_global_assignment -name VERILOG_FILE rtl/boards/decocass/video/video_palette.v
+set_global_assignment -name VERILOG_FILE rtl/boards/decocass/video/video_mixer.v
+set_global_assignment -name VERILOG_FILE rtl/video/video_crtflip.v
 
-# Common
-set_global_assignment -name VERILOG_FILE rtl/mister_custom/hiscore.v
-# CTL-2026-10-25: shared input library (controllers.sv v2)
-set_global_assignment -name SYSTEMVERILOG_FILE rtl/mister_custom/controllers.sv
-set_global_assignment -name VERILOG_FILE rtl/mister_custom/pause.v
-set_global_assignment -name VERILOG_FILE rtl/clock_div.v
+set_global_assignment -name VERILOG_FILE rtl/boards/decocass/mcu/tape_streamer.v
+set_global_assignment -name VERILOG_FILE rtl/boards/decocass/mcu/mcu_tape_iface.v
+set_global_assignment -name VERILOG_FILE rtl/boards/decocass/mcu/plaid_load.v
 
-# Dedicated 8 MHz real clock for the 8041 MCU (copied from Arcade-JunoFirst sound PLL).
-# The T48 core needs clk_i to be a REAL clock (xtal_en='1'), not clk_sys+ce.
-set_global_assignment -name VERILOG_FILE rtl/pll/pll_sound.v
-set_global_assignment -name VERILOG_FILE rtl/pll/pll_sound_0002.v
+set_global_assignment -name VERILOG_FILE rtl/boards/decocass/io/inputs.v
+set_global_assignment -name VERILOG_FILE rtl/boards/decocass/io/mahjong_panel.v
+set_global_assignment -name VERILOG_FILE rtl/boards/decocass/io/watchdog.v
 
-# Sound (phases 12-14)
-set_global_assignment -name VERILOG_FILE rtl/sound/audio_cpu.v
-set_global_assignment -name VERILOG_FILE rtl/sound/sound_latches.v
-set_global_assignment -name VERILOG_FILE rtl/sound/ay8910_pair.v
+set_global_assignment -name VERILOG_FILE rtl/boards/decocass/dongle/dongle_mux.v
+set_global_assignment -name VERILOG_FILE rtl/boards/decocass/dongle/dongle_type1.v
+set_global_assignment -name VERILOG_FILE rtl/boards/decocass/dongle/dongle_type2.v
+set_global_assignment -name VERILOG_FILE rtl/boards/decocass/dongle/dongle_type3.v
+set_global_assignment -name VERILOG_FILE rtl/boards/decocass/dongle/dongle_type4.v
+set_global_assignment -name VERILOG_FILE rtl/boards/decocass/dongle/dongle_type5.v
+set_global_assignment -name VERILOG_FILE rtl/boards/decocass/dongle/dongle_nodong.v
+set_global_assignment -name VERILOG_FILE rtl/boards/decocass/dongle/dongle_darksoft.v
+set_global_assignment -name VERILOG_FILE rtl/boards/decocass/dongle/dongle_widel.v
+
+# Chips
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/rodimus/t65sv/t65sv_all.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/rodimus/t48sv/t48sv_all.sv
+set_global_assignment -name QIP_FILE rtl/sound/jt49/hdl/jt49.qip
 
 # Sound low-pass filters (used by ay8910_pair)
 set_global_assignment -name VERILOG_FILE rtl/sound/Filters/audio_iir_filter.v
 set_global_assignment -name VERILOG_FILE rtl/sound/Filters/tp_lpf_light.v
-set_global_assignment -name VERILOG_FILE rtl/sound/Filters/tp_lpf_medium.v
-set_global_assignment -name VERILOG_FILE rtl/sound/Filters/tp_lpf_heavy.v
 
-# AY-3-8910 pair (phase 13)
-set_global_assignment -name QIP_FILE rtl/sound/jt49/hdl/jt49.qip
-
-# Video (phase 07+)
-set_global_assignment -name VERILOG_FILE rtl/video/video_timing.v
-set_global_assignment -name VERILOG_FILE rtl/video/video_fg.v
-set_global_assignment -name VERILOG_FILE rtl/video/video_bg.v
-set_global_assignment -name VERILOG_FILE rtl/video/video_sprites.v
-set_global_assignment -name VERILOG_FILE rtl/video/video_missiles.v
-set_global_assignment -name VERILOG_FILE rtl/video/video_palette.v
-set_global_assignment -name VERILOG_FILE rtl/video/video_mixer.v
-# CRTFLIP-2026-10-25: CRT Flip line mirror
-set_global_assignment -name VERILOG_FILE rtl/video/video_crtflip.v
-
-# MCU + tape (phases 15-17)
-set_global_assignment -name VERILOG_FILE rtl/mcu/i8041_top.v
-set_global_assignment -name VERILOG_FILE rtl/mcu/mcu_pmem.v
-set_global_assignment -name VERILOG_FILE rtl/mcu/tape_streamer.v
-set_global_assignment -name VERILOG_FILE rtl/mcu/mcu_tape_iface.v
-# PLAID-2026-10-25: Fast Load = PLAID (instant load: 8041 host-port stand-in + 16x CPUs until game entry)
-set_global_assignment -name VERILOG_FILE rtl/mcu/plaid_load.v
-
-# I/O (phase 23, 24)
-set_global_assignment -name VERILOG_FILE rtl/io/inputs.v
-set_global_assignment -name VERILOG_FILE rtl/io/mahjong_panel.v
-set_global_assignment -name VERILOG_FILE rtl/io/watchdog.v
-set_global_assignment -name VERILOG_FILE rtl/io/quadrature_adc.v
-
-# Dongles (phases 18-22)
-set_global_assignment -name VERILOG_FILE rtl/dongle/dongle_mux.v
-set_global_assignment -name VERILOG_FILE rtl/dongle/dongle_type1.v
-set_global_assignment -name VERILOG_FILE rtl/dongle/dongle_type2.v
-set_global_assignment -name VERILOG_FILE rtl/dongle/dongle_type3.v
-set_global_assignment -name VERILOG_FILE rtl/dongle/dongle_type4.v
-set_global_assignment -name VERILOG_FILE rtl/dongle/dongle_type5.v
-set_global_assignment -name VERILOG_FILE rtl/dongle/dongle_nodong.v
-set_global_assignment -name VERILOG_FILE rtl/dongle/dongle_darksoft.v
-set_global_assignment -name VERILOG_FILE rtl/dongle/dongle_widel.v
+# Common
+set_global_assignment -name VERILOG_FILE rtl/mister_custom/hiscore.v
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/mister_custom/controllers.sv
+set_global_assignment -name VERILOG_FILE rtl/mister_custom/pause.v
+set_global_assignment -name VERILOG_FILE rtl/dispatcher/clock_div.v
 
 # RAM & ROM
-set_global_assignment -name VERILOG_FILE        rtl/ram_rom/rom_loader.v
-set_global_assignment -name VERILOG_FILE        rtl/ram_rom/cassette_loader.v
-set_global_assignment -name VERILOG_FILE        rtl/ram_rom/dpram.v
-set_global_assignment -name VERILOG_FILE        rtl/ram_rom/spram.v
-set_global_assignment -name SYSTEMVERILOG_FILE  rtl/ram_rom/ddram.sv
+set_global_assignment -name VERILOG_FILE        rtl/dispatcher/rom_loader.v
+set_global_assignment -name VERILOG_FILE        rtl/dispatcher/cassette_loader.v
+set_global_assignment -name VERILOG_FILE        rtl/dispatcher/dpram.v
 set_global_assignment -name SYSTEMVERILOG_FILE  rtl/ram_rom/sdram.sv
 set_global_assignment -name SYSTEMVERILOG_FILE  rtl/ram_rom/sdram_phase_cal.sv
 set_global_assignment -name SYSTEMVERILOG_FILE  rtl/ram_rom/sdram_phase_ctl.sv
-# DPRAMSV-2026-10-25: VHDL dpram_dc replaced by the SystemVerilog one (same ports/generics + byteena); original:
-# set_global_assignment -name VHDL_FILE           rtl/ram_rom/dpram_dc.vhd
-set_global_assignment -name SYSTEMVERILOG_FILE           rtl/ram_rom/dpram_dc.sv
+set_global_assignment -name SYSTEMVERILOG_FILE  rtl/ram_rom/dpram_dc.sv
